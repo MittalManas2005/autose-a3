@@ -1,0 +1,23 @@
+diff --git a/markdown/__main__.py b/markdown/__main__.py
+index 60f9a5e..f935f89 100644
+--- a/markdown/__main__.py
++++ b/markdown/__main__.py
+@@ -65,6 +65,9 @@ def parse_options(args=None, values=None):
+     parser.add_option("-o", "--output_format", dest="output_format",
+                       default='xhtml', metavar="OUTPUT_FORMAT",
+                       help="Use output format 'xhtml' (default) or 'html'.")
++    parser.add_option("-t", "--tab_length", dest="tab_length", type="int",
++                      default=None, metavar="TAB_LENGTH",
++                      help="Number of spaces per indentation level. Defaults to 4.")
+     parser.add_option("-n", "--no_lazy_ol", dest="lazy_ol",
+                       action='store_false', default=True,
+                       help="Observe number of first item of ordered lists.")
+@@ -123,6 +126,8 @@ def parse_options(args=None, values=None):
+         'output_format': options.output_format,
+         'lazy_ol': options.lazy_ol
+     }
++    if options.tab_length is not None:
++        opts['tab_length'] = options.tab_length
+ 
+     return opts, options.verbose
+ 
