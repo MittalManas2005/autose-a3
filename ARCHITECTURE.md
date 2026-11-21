@@ -6,6 +6,7 @@
 | Pinned commit | `3f2c5510bd8d64a73ec18342f740371bcde9b20c` (`git describe`: `3.11.2-10-g3f2c551`, 2026-10-27) |
 | Scope | The Python-Markdown library **as it exists at the pinned commit**. This document does not describe the AutoSE workflow; see `architecture/` for that. |
 | Evidence | Every factual claim cites `path:line` at the pinned commit. Claims marked *(run)* were also checked by executing code at the pinned commit. Section 5 lists how each claim was verified. |
+| Location | Kept in the AutoSE submission repository ([MittalManas2005/autose-a3](https://github.com/MittalManas2005/autose-a3)), **not** in the fork. The AutoSE workflow passes it to the Design agent as context; the mechanism is documented in the AutoSE ADRs under `architecture/decisions/`. Paths cited here (e.g. `markdown/core.py`) are paths inside the target repository. |
 
 > **For automated agents:** treat this document as a map, not as ground truth. If anything here disagrees with the source code at the commit you are working on, the source code wins. Record the discrepancy in your output.
 
