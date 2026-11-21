@@ -1,0 +1,16 @@
+# Stage map: agent, artifact and check per stage
+
+Status: **design** (2026-11-22). "Code decides" means the final pass/fail is made by the orchestrator's deterministic check. An agent's own claims are input to that check, never the decision itself (ADR-007).
+
+| # | Stage | Agent (model) | Receives | Artifact | Check before moving on (code decides) | If the check fails |
+|---|---|---|---|---|---|---|
+| 1 | Requirements | Requirements agent (Haiku), following the adapted A1 skill | issue text (untrusted), repository (read-only) | `spec.md` | Front matter parses; `status` is PASS; every AC has an ID, a concrete input, a public call and an oracle kind (`exact` / `contains` / `not-contains` / `no-error` / `raises` / `property`); every FR has ≥ 1 AC | `NEEDS_INPUT`: questions posted on the issue, run stops; a maintainer's `/autose` reply restarts in update mode. `FAIL`: reason recorded, run stops |
+| 2 | Design | Design agent (Haiku) | issue, `spec.md`, bundled `ARCHITECTURE.md`, repository | `design.md` | Lists the files and functions to change; each listed file exists or is marked new; each listed function or class exists (Python AST) or is marked new; contains an "ARCHITECTURE.md vs source" section | One retry with the validator's findings; then stop with the reason |
+| 3 | Implementation | Implementer agent (Haiku) | `spec.md`, `design.md`, repository; on retry: failing-test excerpt; on rework: reviewer findings | `diff.patch` | Diff non-empty; diff guard (only `markdown/**`, `tests/**`, `docs/**`; no deleted test files or test methods); `pip install -e .`; all modules compile; import + convert smoke test; `flake8 markdown tests` | Back to Implementer (shares the retry budget with stage 4) |
+| 4 | Testing | Tester agent (Haiku), then the deterministic runner | `spec.md`, repository with the change applied | `test_report.md` | Every AC ID is named by ≥ 1 new test; new tests fail on the base commit for non-preservation ACs; full `python -m unittest discover tests` passes; test count not lower than base (same environment) | Back to stage 3 (≤ 2 times); if still failing, back to stage 2 once; then stop with the reason |
+| 5 | Release | none (deterministic Release job, GitHub App identity) | `diff.patch`, artifacts for the PR body | `pr.md` + PR link | PR is open (API); every CI check run on the head commit concludes `success` within the timeout | Stop with the failing checks recorded in `pr.md` |
+| 6 | Review | Reviewer agent (Sonnet), in its own job | issue, diff, repository at the PR head (nothing else) | `review.md` (+ `verdict.json`) | Verdict parses (`approve`, or `request_changes` + target stage `design`/`implementation` + findings with evidence). Approve → stop; the human decides the merge | Send back to the named stage (round 2, then round 3); after 2 send-backs, stop with "review rounds used up" |
+
+Experiment variants (`experiment/variants.md`):
+- **E1, single agent:** stages 1–4 are done by one Self-Reflection agent (Haiku) producing the same artifacts. The checks, Release and Reviewer are identical.
+- **E2, reviewer model:** stage 6 runs with Haiku instead of Sonnet.
