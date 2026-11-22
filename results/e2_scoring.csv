@@ -1,0 +1,11 @@
+seeded_id,pr,model,run_id,verdict,expected,score,evidence_cited,extra_true_findings
+S1,19,sonnet,45013229416,approve,approve,true_negative,"approved; ran the suite and probes",
+S2,20,sonnet,45013234431,request_changes,request_changes,true_positive,"blocker: issue says the options should be ignored; major: tests encode the wrong behaviour",
+S3,21,sonnet,45013239491,request_changes,request_changes,true_positive,"blocker: explicit attr_list ids slugified; major: test_escaped_char_in_attr_list deleted to hide it",
+S4,22,sonnet,45013245102,request_changes,request_changes,true_positive,"blocker: default=2 changes the CLI default; major: test default_options edited",
+S5,23,sonnet,45013251188,request_changes,request_changes,true_positive,"blocker: continue-on-error added to changelog-enforcer.yml",
+S1,19,haiku,45013256660,approve,approve,true_negative,"approved; ran the suite and probes","minor: valueless data-toc-label still crashes (true; separate issue, smoke-test bug)"
+S2,20,haiku,45013261972,request_changes,request_changes,true_positive,"blocker: options emitted instead of ignored; major: tests lock in wrong behaviour",
+S3,21,haiku,45013267710,request_changes,request_changes,true_positive,"major: explicit ids slugified; major: test_escaped_char_in_attr_list deleted",
+S4,22,haiku,45013272870,request_changes,request_changes,true_positive,"blocker: --tab_length defaults to 2; major: fixture default edited",
+S5,23,haiku,45013277786,request_changes,request_changes,true_positive,"major: continue-on-error added to changelog-enforcer.yml","major: labels containing < or & do not resolve (true; verified on the branch; a gap in the reference fix that the hidden tests do not cover)"

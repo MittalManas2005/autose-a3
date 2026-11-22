@@ -1,0 +1,169 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..70b5fea 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -14,6 +14,12 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ## [Unreleased]
+ 
++### Added
++
++* The `toc` extension leaves out of the Table of Contents, and out of `toc_tokens`,
++  any heading with the `notoc` class set with the `attr_list` extension, e.g.
++  `## Changelog {: .notoc }`. The heading is still rendered with its `id`.
++
+ ### Fixed
+ 
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+diff --git a/docs/extensions/toc.md b/docs/extensions/toc.md
+index f9d5800..6600c05 100644
+--- a/docs/extensions/toc.md
++++ b/docs/extensions/toc.md
+@@ -129,6 +129,30 @@ The value of the `data-toc-label` attribute is sanitized and stripped of any HTM
+ tags. However, `toc_tokens` will contain the raw content under
+ `data-toc-label`.
+ 
++### Excluding Headings
++
++In conjunction with the [Attribute Lists Extension], a heading with the `notoc`
++class is left out of the Table of Contents and out of `toc_tokens`. This is useful
++for headings such as "Changelog" or "See also" that should not appear in the
++Table of Contents. For example:
++
++``` md-render
++---
++extensions: [toc, attr_list]
++---
++[TOC]
++
++# One
++
++## Two { .notoc }
++
++## Three
++```
++
++The heading itself is rendered as usual, including its `id`, so links to it
++keep working. Headings with other classes are not affected. Headings nested under
++an excluded heading remain in the Table of Contents.
++
+ Usage
+ -----
+ 
+diff --git a/markdown/extensions/toc.py b/markdown/extensions/toc.py
+index ba65225..189ff68 100644
+--- a/markdown/extensions/toc.py
++++ b/markdown/extensions/toc.py
+@@ -411,7 +411,11 @@ class TocTreeprocessor(Treeprocessor):
+                     # Remove the data-toc-label attribute as it is no longer needed
+                     del el.attrib['data-toc-label']
+ 
+-                if int(el.tag[-1]) >= self.toc_top and int(el.tag[-1]) <= self.toc_bottom:
++                # Headings with the `notoc` class (set with `attr_list`) are left out of the TOC.
++                # `class` may be `None` when set without a value, so guard before splitting.
++                excluded = 'notoc' in (el.get('class') or '').split()
++
++                if not excluded and int(el.tag[-1]) >= self.toc_top and int(el.tag[-1]) <= self.toc_bottom:
+                     toc_tokens.append({
+                         'level': int(el.tag[-1]),
+                         'id': unescape(el.attrib["id"]),
+diff --git a/tests/test_syntax/extensions/test_toc.py b/tests/test_syntax/extensions/test_toc.py
+index 12a07d5..c6a0ba2 100644
+--- a/tests/test_syntax/extensions/test_toc.py
++++ b/tests/test_syntax/extensions/test_toc.py
+@@ -20,7 +20,7 @@ License: BSD (see LICENSE.md for details).
+ """
+ 
+ from markdown.test_tools import TestCase
+-from markdown import Markdown
++from markdown import Markdown, markdown
+ from markdown.extensions.toc import TocExtension, strip_tags, unique
+ from markdown.extensions.nl2br import Nl2BrExtension
+ 
+@@ -1495,6 +1495,86 @@ class TestTOC(TestCase):
+         )
+ 
+ 
++class TestTocNotoc(TestCase):
++    """ Tests for leaving headings with the `notoc` class out of the Table of Contents. """
++
++    def flatten_names(self, tokens):
++        """ Return the `name` of every token, including nested children, in document order. """
++        names = []
++        for token in tokens:
++            names.append(token['name'])
++            names.extend(self.flatten_names(token['children']))
++        return names
++
++    def test_ac_fr_001_1_notoc_heading_omitted_from_toc(self):
++        """ `AC-FR-001-1`: a heading with the `notoc` class is left out of the TOC, the others remain. """
++        html = markdown(
++            '[TOC]\n\n# One\n\n## Two {: .notoc }\n\n## Three',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertIn('href="#three"', html)
++
++    def test_ac_fr_001_2_notoc_heading_absent_from_toc_links(self):
++        """ `AC-FR-001-2`: no TOC link points at a heading with the `notoc` class. """
++        html = markdown(
++            '[TOC]\n\n# One\n\n## Two {: .notoc }\n\n## Three',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertNotIn('href="#two"', html)
++
++    def test_ac_fr_001_3_notoc_token_in_multiple_classes(self):
++        """ `AC-FR-001-3`: `notoc` is excluded when it is one of several classes on the heading. """
++        html = markdown(
++            '[TOC]\n\n# One\n\n## Two {: .other .notoc }\n\n## Three',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertNotIn('href="#two"', html)
++
++    def test_ac_fr_001_4_child_of_notoc_heading_kept(self):
++        """ `AC-FR-001-4`: a heading nested under an excluded heading stays in the TOC. """
++        html = markdown(
++            '[TOC]\n\n# One\n\n## Two {: .notoc }\n\n### Four\n\n## Three',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertIn('href="#four"', html)
++
++    def test_ac_fr_002_1_notoc_heading_absent_from_toc_tokens(self):
++        """ `AC-FR-002-1`: a heading with the `notoc` class is left out of `toc_tokens`. """
++        md = Markdown(extensions=['toc', 'attr_list'])
++        md.convert('[TOC]\n\n# One\n\n## Two {: .notoc }\n\n## Three')
++        self.assertEqual(self.flatten_names(md.toc_tokens), ['One', 'Three'])
++
++    def test_ac_fr_003_1_notoc_heading_keeps_id(self):
++        """ `AC-FR-003-1`: a heading with the `notoc` class keeps its generated `id` attribute. """
++        html = markdown(
++            '[TOC]\n\n# One\n\n## Two {: .notoc }\n\n## Three',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertIn('id="two"', html)
++
++    def test_ac_fr_003_2_notoc_heading_rendered(self):
++        """ `AC-FR-003-2`: a heading with the `notoc` class is still rendered as an `h2` element. """
++        html = markdown(
++            '[TOC]\n\n# One\n\n## Two {: .notoc }\n\n## Three',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertIn('>Two</h2>', html)
++
++    def test_ac_fr_004_1_other_class_heading_kept_in_toc_tokens(self):
++        """ `AC-FR-004-1`: headings with other classes remain in `toc_tokens`. """
++        md = Markdown(extensions=['toc', 'attr_list'])
++        md.convert('# One\n\n## Two {: .other }\n\n## Three')
++        self.assertEqual(self.flatten_names(md.toc_tokens), ['One', 'Two', 'Three'])
++
++    def test_ac_fr_004_2_other_class_heading_kept_in_toc(self):
++        """ `AC-FR-004-2`: headings with other classes remain in the TOC. """
++        html = markdown(
++            '[TOC]\n\n# One\n\n## Two {: .other }\n\n## Three',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertIn('href="#two"', html)
++
++
+ class testStripTags(TestCase):
+ 
+     def testStripElement(self):

@@ -1,0 +1,56 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1186 tests in 1.150s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": ".......................................................................................\n----------------------------------------------------------------------\nRan 87 tests in 0.425s\n\nOK"
+  },
+  {
+    "command": "python -c \"import markdown; md=markdown.Markdown(extensions=['toc','attr_list']); h=md.convert('# One {: .notoc }\\n\\n## Two\\n\\n### Three\\n\\n## Four'); print(h); print(md.toc_tokens)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 class=\"notoc\" id=\"one\">One</h1>\n<h2 id=\"two\">Two</h2>\n<h3 id=\"three\">Three</h3>\n<h2 id=\"four\">Four</h2>\n[{'level': 2, 'id': 'two', 'name': 'Two', 'html': 'Two', 'data-toc-label': '', 'children': [{'level': 3, 'id': 'three', 'name': 'Three', 'html': 'Three', 'data-toc-label': '', 'children': []}]}, {'level': 2, 'id': 'four', 'name': 'Four', 'html': 'Four', 'data-toc-label': '', 'children': []}]"
+  },
+  {
+    "command": "python -c \"import markdown; md=markdown.Markdown(extensions=['toc','attr_list']); h=md.convert('[TOC]\\n\\n# One {: .notoc }\\n\\n## Two {: .notoc }\\n'); print(h); print(repr(md.toc)); print(md.toc_tokens)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul></ul>\n</div>\n<h1 class=\"notoc\" id=\"one\">One</h1>\n<h2 class=\"notoc\" id=\"two\">Two</h2>\n'<div class=\"toc\">\\n<ul></ul>\\n</div>\\n'\n[]"
+  },
+  {
+    "command": "python -c \"import markdown; md=markdown.Markdown(extensions=['toc','attr_list'], extension_configs={'toc':{'toc_depth':'2-3'}}); h=md.convert('[TOC]\\n\\n# One\\n\\n## Two {: .notoc .x }\\n\\n### Three\\n\\n## Four {: .notoc }\\n\\n#### Five'); print(md.toc); print(md.toc_tokens)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#three\">Three</a></li>\n</ul>\n</div>\n\n[{'level': 3, 'id': 'three', 'name': 'Three', 'html': 'Three', 'data-toc-label': '', 'children': []}]"
+  },
+  {
+    "command": "python -c \"import markdown; md=markdown.Markdown(extensions=['toc','attr_list']); h=md.convert('# One\\n\\n## Two {: .notoc }\\n\\n## Two {: .notoc }\\n\\n## Two'); print(h); print(md.toc)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"one\">One</h1>\n<h2 class=\"notoc\" id=\"two\">Two</h2>\n<h2 class=\"notoc\" id=\"two_1\">Two</h2>\n<h2 id=\"two_2\">Two</h2>\n<div class=\"toc\">\n<ul>\n<li><a href=\"#one\">One</a><ul>\n<li><a href=\"#two_2\">Two</a></li>\n</ul>\n</li>\n</ul>\n</div>"
+  },
+  {
+    "command": "python -m flake8 markdown/extensions/toc.py tests/test_syntax/extensions/test_toc.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; md=markdown.Markdown(extensions=['toc','attr_list']); h=md.convert('[TOC]\\n\\n# One\\n\\n## Two {: .notoc }\\n\\n### Sub\\n\\n## Three {: .notoc }\\n\\n### Sub2 {: .notoc }\\n\\n#### Deep'); print(md.toc); print(md.toc_tokens)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": ">One</a><ul>\n<li><a href=\"#sub\">Sub</a><ul>\n<li><a href=\"#deep\">Deep</a></li>\n</ul>\n</li>\n</ul>\n</li>\n</ul>\n</div>\n\n[{'level': 1, 'id': 'one', 'name': 'One', 'html': 'One', 'data-toc-label': '', 'children': [{'level': 3, 'id': 'sub', 'name': 'Sub', 'html': 'Sub', 'data-toc-label': '', 'children': [{'level': 4, 'id': 'deep', 'name': 'Deep', 'html': 'Deep', 'data-toc-label': '', 'children': []}]}]}]"
+  },
+  {
+    "command": "python -c \"import markdown; md=markdown.Markdown(extensions=['toc','attr_list']); h=md.convert('# One\\n\\n## Two {: .notoc }\\n\\n## Three\\n\\n## Four {: .notoc-like }'); print(md.toc)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#one\">One</a><ul>\n<li><a href=\"#three\">Three</a></li>\n<li><a href=\"#four\">Four</a></li>\n</ul>\n</li>\n</ul>\n</div>"
+  }
+]

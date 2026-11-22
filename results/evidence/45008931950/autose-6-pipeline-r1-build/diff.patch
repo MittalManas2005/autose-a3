@@ -1,0 +1,248 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..3adee05 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -14,6 +14,11 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ## [Unreleased]
+ 
++### Added
++
++* Add a `--tab_length` option to the command line to set the length of tabs in the
++  source, as the `tab_length` keyword of `markdown.markdown()` does.
++
+ ### Fixed
+ 
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+diff --git a/docs/cli.md b/docs/cli.md
+index abdab3b..d89470a 100644
+--- a/docs/cli.md
++++ b/docs/cli.md
+@@ -51,6 +51,9 @@ Options:
+                         Encoding for input and output files.
+   -o OUTPUT_FORMAT, --output_format=OUTPUT_FORMAT
+                         Use output format 'xhtml' (default) or 'html'.
++  --tab_length=TAB_LENGTH
++                        Number of spaces per tab in the source. Defaults to
++                        4.
+   -x EXTENSION, --extension=EXTENSION
+                         Load extension EXTENSION.
+   -c CONFIG_FILE, --extension_configs=CONFIG_FILE
+diff --git a/markdown/__main__.py b/markdown/__main__.py
+index 60f9a5e..e2ef778 100644
+--- a/markdown/__main__.py
++++ b/markdown/__main__.py
+@@ -68,6 +68,9 @@ def parse_options(args=None, values=None):
+     parser.add_option("-n", "--no_lazy_ol", dest="lazy_ol",
+                       action='store_false', default=True,
+                       help="Observe number of first item of ordered lists.")
++    parser.add_option("--tab_length", dest="tab_length", type="int", default=None,
++                      metavar="TAB_LENGTH",
++                      help="Number of spaces per tab in the source. Defaults to 4.")
+     parser.add_option("-x", "--extension", action="append", dest="extensions",
+                       help="Load extension EXTENSION.", metavar="EXTENSION")
+     parser.add_option("-c", "--extension_configs",
+@@ -123,6 +126,9 @@ def parse_options(args=None, values=None):
+         'output_format': options.output_format,
+         'lazy_ol': options.lazy_ol
+     }
++    # Only pass `tab_length` when given, so the library default (4) applies otherwise.
++    if options.tab_length is not None:
++        opts['tab_length'] = options.tab_length
+ 
+     return opts, options.verbose
+ 
+diff --git a/tests/test_apis.py b/tests/test_apis.py
+index b4afc4f..b419246 100644
+--- a/tests/test_apis.py
++++ b/tests/test_apis.py
+@@ -24,6 +24,7 @@ Python-Markdown Regression Tests
+ Tests of the various APIs with the Python Markdown library.
+ """
+ 
++import contextlib
+ import unittest
+ import sys
+ import os
+@@ -854,6 +855,46 @@ class TestCliOptionParsing(unittest.TestCase):
+         self.default_options['lazy_ol'] = False
+         self.assertEqual(options, self.default_options)
+ 
++    def testTabLengthEqualsForm(self):
++        options, logging_level = parse_options(['--tab_length=2'])
++        self.assertEqual(options['tab_length'], 2)
++
++    def testTabLengthSpaceForm(self):
++        options, logging_level = parse_options(['--tab_length', '2'])
++        self.assertEqual(options['tab_length'], 2)
++
++    def testTabLengthAbsentNotPassed(self):
++        options, logging_level = parse_options([])
++        self.assertNotIn('tab_length', options)
++
++    def testTabLengthInvalidValue(self):
++        with contextlib.redirect_stderr(StringIO()) as err:
++            with self.assertRaises(SystemExit) as cm:
++                parse_options(['--tab_length', 'abc'])
++        self.assertEqual(cm.exception.code, 2)
++        self.assertIn('--tab_length', err.getvalue())
++
++    def testTabLengthHelp(self):
++        with contextlib.redirect_stdout(StringIO()) as out:
++            with self.assertRaises(SystemExit) as cm:
++                parse_options(['--help'])
++        self.assertEqual(cm.exception.code, 0)
++        self.assertIn('--tab_length', out.getvalue())
++
++    def testTabLengthOutputMatchesLibrary(self):
++        text = "- a\n\n  - b\n"
++        options, logging_level = parse_options(['--tab_length=2'])
++        out = BytesIO()
++        options.update(input=BytesIO(text.encode('utf-8')), output=out)
++        markdown.markdownFromFile(**options)
++        html = out.getvalue().decode('utf-8')
++        self.assertEqual(html, markdown.markdown(text, tab_length=2))
++        # The `b` item must be nested inside the `a` item.
++        root = etree.fromstring(html)
++        nested = root.find('li/ul/li')
++        self.assertIsNotNone(nested)
++        self.assertEqual(''.join(nested.itertext()).strip(), 'b')
++
+     def testExtensionOption(self):
+         options, logging_level = parse_options(['-x', 'markdown.extensions.footnotes'])
+         self.default_options['extensions'] = ['markdown.extensions.footnotes']
+diff --git a/tests/test_cli_tab_length.py b/tests/test_cli_tab_length.py
+new file mode 100644
+index 0000000..ea1e68e
+--- /dev/null
++++ b/tests/test_cli_tab_length.py
+@@ -0,0 +1,129 @@
++"""
++Acceptance tests for issue #6: command line option `--tab_length`.
++
++These tests run the real command line (`python -m markdown`) in a subprocess
++and compare its standard output with the library API.
++"""
++
++import os
++import subprocess
++import sys
++import unittest
++from xml.etree import ElementTree as etree
++
++import markdown
++
++REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++
++SOURCE = "- a\n\n  - b\n"
++SOURCE_BYTES = SOURCE.encode('utf-8')
++
++
++def run_cli(args):
++    """ Run `python -m markdown` with `args`, feeding `SOURCE` on stdin. """
++    return subprocess.run(
++        [sys.executable, '-m', 'markdown'] + args,
++        input=SOURCE_BYTES,
++        stdout=subprocess.PIPE,
++        stderr=subprocess.PIPE,
++        cwd=REPO_ROOT,
++        timeout=120,
++    )
++
++
++def own_text(li):
++    """ Text of a `li` element, excluding the text of nested lists. """
++    parts = [li.text or '']
++    parts.extend(p.text or '' for p in li.findall('p'))
++    return ' '.join(parts).strip()
++
++
++def find_item(root, text):
++    """ Return the single `li` element whose own text is `text`. """
++    matches = [li for li in root.iter('li') if own_text(li) == text]
++    assert len(matches) == 1, 'expected one li with text %r, found %d' % (text, len(matches))
++    return matches[0]
++
++
++def is_descendant(child, ancestor):
++    """ True if `child` is nested (at any depth) inside `ancestor`. """
++    return any(el is child for el in ancestor.iter('li') if el is not ancestor)
++
++
++class TestTabLengthCliOption(unittest.TestCase):
++    """ Acceptance criteria for issue #6. """
++
++    def test_ac_fr_001_1_equals_form_is_accepted(self):
++        """AC-FR-001-1: `python -m markdown --tab_length=2` exits 0 and writes HTML to stdout."""
++        result = run_cli(['--tab_length=2'])
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        self.assertTrue(result.stdout.strip(), 'expected HTML on stdout')
++
++    def test_ac_fr_001_2_space_form_is_accepted(self):
++        """AC-FR-001-2: `python -m markdown --tab_length 2` exits 0 and writes HTML to stdout."""
++        result = run_cli(['--tab_length', '2'])
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        self.assertTrue(result.stdout.strip(), 'expected HTML on stdout')
++
++    def test_ac_fr_002_1_equals_form_matches_library(self):
++        """AC-FR-002-1: `--tab_length=2` output equals `markdown.markdown(text, tab_length=2)`."""
++        result = run_cli(['--tab_length=2'])
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        expected = markdown.markdown(SOURCE, tab_length=2)
++        self.assertEqual(result.stdout.decode('utf-8'), expected)
++
++    def test_ac_fr_002_2_space_form_matches_library(self):
++        """AC-FR-002-2: `--tab_length 2` output equals `markdown.markdown(text, tab_length=2)`."""
++        result = run_cli(['--tab_length', '2'])
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        expected = markdown.markdown(SOURCE, tab_length=2)
++        self.assertEqual(result.stdout.decode('utf-8'), expected)
++
++    def test_ac_fr_002_3_item_b_nested_in_item_a(self):
++        """AC-FR-002-3: with `--tab_length=2`, the `li` for `b` is a descendant of the `li` for `a`."""
++        result = run_cli(['--tab_length=2'])
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        root = etree.fromstring('<div>' + result.stdout.decode('utf-8') + '</div>')
++        item_a = find_item(root, 'a')
++        item_b = find_item(root, 'b')
++        self.assertTrue(is_descendant(item_b, item_a), 'b should be nested inside a')
++
++    def test_ac_fr_003_1_output_unchanged_without_option(self):
++        """AC-FR-003-1: without `--tab_length`, output equals the library default and `b` is not nested."""
++        result = run_cli([])
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        stdout = result.stdout.decode('utf-8')
++        self.assertEqual(stdout, markdown.markdown(SOURCE))
++        root = etree.fromstring('<div>' + stdout + '</div>')
++        item_a = find_item(root, 'a')
++        item_b = find_item(root, 'b')
++        self.assertFalse(is_descendant(item_b, item_a), 'b should not be nested with default tab length')
++
++    def test_ac_fr_004_1_help_lists_option(self):
++        """AC-FR-004-1: `python -m markdown --help` output contains `--tab_length`."""
++        result = subprocess.run(
++            [sys.executable, '-m', 'markdown', '--help'],
++            stdout=subprocess.PIPE,
++            stderr=subprocess.PIPE,
++            cwd=REPO_ROOT,
++            timeout=120,
++        )
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        self.assertIn('--tab_length', result.stdout.decode('utf-8'))
++
++    def test_ac_fr_005_1_non_integer_value_rejected(self):
++        """AC-FR-005-1: `python -m markdown --tab_length abc` exits non-zero and names `--tab_length`."""
++        result = run_cli(['--tab_length', 'abc'])
++        self.assertNotEqual(result.returncode, 0)
++        self.assertIn('--tab_length', result.stderr.decode('utf-8', 'replace'))
++
++    def test_ac_nfr_001_1_existing_output_format_preserved(self):
++        """AC-NFR-001-1: `python -m markdown -o html` output equals `markdown.markdown(text, output_format='html')`."""
++        result = run_cli(['-o', 'html'])
++        self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
++        expected = markdown.markdown(SOURCE, output_format='html')
++        self.assertEqual(result.stdout.decode('utf-8'), expected)
++
++
++if __name__ == '__main__':
++    unittest.main()

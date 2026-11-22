@@ -1,0 +1,249 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..add3483 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -39,6 +39,10 @@ See the [Contributing Guide](contributing.md) for details.
+   provided, rather than rendering them as `key="key"`, so the same source
+   renders consistently under both the `html` and `xhtml` output formats
+   (#1501).
++* Fix a crash in the `fenced_code` extension when `attr_list` is enabled and
++  `codehilite` is not. The `linenums`, `guess_lang` and `noclasses` options of a
++  fenced code block are now ignored in that case, as they only apply to syntax
++  highlighting.
+ 
+ ## [3.11.2] - 2026-10-19
+ 
+diff --git a/markdown/extensions/fenced_code.py b/markdown/extensions/fenced_code.py
+index 6e2ed6b..3b9388a 100644
+--- a/markdown/extensions/fenced_code.py
++++ b/markdown/extensions/fenced_code.py
+@@ -87,6 +87,8 @@ class FencedBlockPreprocessor(Preprocessor):
+             'noclasses',
+             'use_pygments'
+         ]
++        # Options which only apply to syntax highlighting. Without `codehilite` they are ignored.
++        self.codehilite_only_options = ('linenums', 'guess_lang', 'noclasses')
+ 
+     def run(self, lines: list[str]) -> list[str]:
+         """ Match and store Fenced Code Blocks in the `HtmlStash`. """
+@@ -156,9 +158,11 @@ class FencedBlockPreprocessor(Preprocessor):
+                         # Only assign key/value pairs to code element if `attr_list` extension is enabled, key/value
+                         # pairs were defined on the code block, and the `use_pygments` key was not set to `True`. The
+                         # `use_pygments` key could be either set to `False` or not defined. It is omitted from output.
++                        # Highlighting-only keys are also omitted, as their values are not strings.
+                         kv_pairs = ''.join(
+                             f' {sanitize_name(k)}="{_escape_attrib_html(v)}"'
+-                            for k, v in config.items() if k != 'use_pygments'
++                            for k, v in config.items()
++                            if k != 'use_pygments' and k not in self.codehilite_only_options
+                         )
+                     code = self._escape(m.group('code'))
+                     code = f'<pre{id_attr}{class_attr}><code{lang_attr}{kv_pairs}>{code}</code></pre>'
+diff --git a/tests/test_syntax/extensions/test_fenced_code.py b/tests/test_syntax/extensions/test_fenced_code.py
+index cbe101d..b973fc8 100644
+--- a/tests/test_syntax/extensions/test_fenced_code.py
++++ b/tests/test_syntax/extensions/test_fenced_code.py
+@@ -359,6 +359,70 @@ class TestFencedCode(TestCase):
+             extensions=['fenced_code', 'attr_list']
+         )
+ 
++    def testFencedCodehiliteOnlyOptionsIgnoredNoCodehiliteWithAttrList(self):
++        # The `codehilite`-only options are ignored, not rendered as attributes (which crashed).
++        for attrs in (
++            '{ .python linenums }',
++            '{ .python linenums=true }',
++            '{ .python linenums="1" }',
++            '{ .python guess_lang noclasses }',
++            '{ .python linenums=false }',
++        ):
++            with self.subTest(attrs=attrs):
++                self.assertMarkdownRenders(
++                    self.dedent(
++                        f'''
++                        ``` {attrs}
++                        print(1)
++                        ```
++                        '''
++                    ),
++                    self.dedent(
++                        '''
++                        <pre><code class="language-python">print(1)
++                        </code></pre>
++                        '''
++                    ),
++                    extensions=['fenced_code', 'attr_list']
++                )
++
++    def testFencedCodehiliteOnlyOptionsIgnoredKeepOtherAttrsNoCodehiliteWithAttrList(self):
++        self.assertMarkdownRenders(
++            self.dedent(
++                '''
++                ``` { .python linenums data-x="y" }
++                print(1)
++                ```
++                '''
++            ),
++            self.dedent(
++                '''
++                <pre><code class="language-python" data-x="y">print(1)
++                </code></pre>
++                '''
++            ),
++            extensions=['fenced_code', 'attr_list']
++        )
++
++    def testFencedCodehiliteOnlyOptionsNoAttrList(self):
++        # Without `attr_list` no key/value pairs are output, so the options are never rendered.
++        self.assertMarkdownRenders(
++            self.dedent(
++                '''
++                ``` { .python linenums }
++                print(1)
++                ```
++                '''
++            ),
++            self.dedent(
++                '''
++                <pre><code class="language-python">print(1)
++                </code></pre>
++                '''
++            ),
++            extensions=['fenced_code']
++        )
++
+     def testFencedLanguageNoPrefix(self):
+         self.assertMarkdownRenders(
+             self.dedent(
+@@ -462,6 +526,14 @@ class TestFencedCodeWithCodehilite(TestCase):
+         if has_pygments and pygments.__version__ != required_pygments_version:
+             self.skipTest(f'Pygments=={required_pygments_version} is required')
+ 
++    def test_codehilite_options_do_not_raise(self):
++        # Output depends on whether Pygments is installed, so only check that no exception is raised.
++        output = markdown.markdown(
++            '``` { .python linenums }\nprint(1)\n```',
++            extensions=['codehilite', 'fenced_code']
++        )
++        self.assertTrue(output)
++
+     def test_shebang(self):
+ 
+         if has_pygments:
+diff --git a/tests/test_syntax/extensions/test_fenced_code_codehilite_only_options.py b/tests/test_syntax/extensions/test_fenced_code_codehilite_only_options.py
+new file mode 100644
+index 0000000..f83830c
+--- /dev/null
++++ b/tests/test_syntax/extensions/test_fenced_code_codehilite_only_options.py
+@@ -0,0 +1,112 @@
++"""
++Acceptance tests for issue #4: fenced code blocks with `linenums`, `guess_lang` or `noclasses`
++crash the conversion when `codehilite` is not enabled.
++"""
++
++import unittest
++
++import markdown
++from markdown.test_tools import TestCase
++
++
++class TestIssue4CodehiliteOnlyOptionsWithoutCodehilite(TestCase):
++    """ Acceptance criteria AC-FR-001-*, AC-FR-002-1, AC-NFR-001-*, AC-NFR-002-1 (no `codehilite`). """
++
++    extensions = ['fenced_code', 'attr_list']
++
++    def test_ac_fr_001_1_linenums_flag_is_ignored(self):
++        """AC-FR-001-1: `linenums` flag without `codehilite` is ignored and the block renders as if absent."""
++        self.assertMarkdownRenders(
++            '``` { .python linenums }\nprint(1)\n```',
++            '<pre><code class="language-python">print(1)\n</code></pre>',
++            extensions=self.extensions
++        )
++
++    def test_ac_fr_001_2_linenums_true_is_ignored(self):
++        """AC-FR-001-2: `linenums=true` without `codehilite` is ignored and the block renders as if absent."""
++        self.assertMarkdownRenders(
++            '``` { .python linenums=true }\nprint(1)\n```',
++            '<pre><code class="language-python">print(1)\n</code></pre>',
++            extensions=self.extensions
++        )
++
++    def test_ac_fr_001_3_linenums_quoted_value_is_ignored(self):
++        """AC-FR-001-3: `linenums="1"` without `codehilite` is ignored and the block renders as if absent."""
++        self.assertMarkdownRenders(
++            '``` { .python linenums="1" }\nprint(1)\n```',
++            '<pre><code class="language-python">print(1)\n</code></pre>',
++            extensions=self.extensions
++        )
++
++    def test_ac_fr_001_4_guess_lang_and_noclasses_are_ignored(self):
++        """AC-FR-001-4: `guess_lang noclasses` without `codehilite` are ignored and the block renders as if absent."""
++        self.assertMarkdownRenders(
++            '``` { .python guess_lang noclasses }\nprint(1)\n```',
++            '<pre><code class="language-python">print(1)\n</code></pre>',
++            extensions=self.extensions
++        )
++
++    def test_ac_fr_001_5_linenums_false_is_ignored(self):
++        """AC-FR-001-5: `linenums=false` without `codehilite` is ignored and the block renders as if absent."""
++        self.assertMarkdownRenders(
++            '``` { .python linenums=false }\nprint(1)\n```',
++            '<pre><code class="language-python">print(1)\n</code></pre>',
++            extensions=self.extensions
++        )
++
++    def test_ac_fr_002_1_other_attributes_kept_on_code_element(self):
++        """AC-FR-002-1: other attributes (`data-x="y"`) stay on `<code>` while `linenums` is dropped."""
++        output = markdown.markdown(
++            '``` { .python linenums data-x="y" }\nprint(1)\n```',
++            extensions=self.extensions
++        )
++        self.assertIn('<code class="language-python" data-x="y">', output)
++        self.assertNotIn('linenums', output)
++
++    def test_ac_nfr_001_1_existing_attribute_kept_and_use_pygments_false_omitted(self):
++        """AC-NFR-001-1: `foo=bar use_pygments=False` keeps `foo="bar"` and omits `use_pygments`."""
++        self.assertMarkdownRenders(
++            '``` { .python foo=bar use_pygments=False }\n# Some python code\n```',
++            '<pre><code class="language-python" foo="bar"># Some python code\n</code></pre>',
++            extensions=self.extensions
++        )
++
++    def test_ac_nfr_001_2_use_pygments_true_output_unchanged(self):
++        """AC-NFR-001-2: `foo=bar use_pygments=True` without codehilite keeps the existing output."""
++        self.assertMarkdownRenders(
++            '``` { .python foo=bar use_pygments=True }\n# Some python code\n```',
++            '<pre><code class="language-python"># Some python code\n</code></pre>',
++            extensions=self.extensions
++        )
++
++    def test_ac_nfr_001_3_linenums_without_attr_list_unchanged(self):
++        """AC-NFR-001-3: with `fenced_code` only (no `attr_list`), `linenums` is not rendered."""
++        self.assertMarkdownRenders(
++            '``` { .python linenums }\nprint(1)\n```',
++            '<pre><code class="language-python">print(1)\n</code></pre>',
++            extensions=['fenced_code']
++        )
++
++    def test_ac_nfr_002_1_attribute_names_and_values_escaped(self):
++        """AC-NFR-002-1: a malicious attribute name is sanitised and its value escaped on `<code>`."""
++        self.assertMarkdownRenders(
++            '``` { .python x><svg/onload=alert(1) }\n# Some python code\n```',
++            '<pre><code class="language-python" x_svg_onload="alert(1)"># Some python code\n</code></pre>',
++            extensions=self.extensions
++        )
++
++
++class TestIssue4WithCodehilite(TestCase):
++    """ Acceptance criteria AC-FR-003-1 (`codehilite` enabled). """
++
++    def test_ac_fr_003_1_codehilite_linenums_does_not_raise(self):
++        """AC-FR-003-1: with `codehilite` enabled, `linenums` renders without an exception and non-empty output."""
++        output = markdown.markdown(
++            '``` { .python linenums }\nprint(1)\n```',
++            extensions=['codehilite', 'fenced_code']
++        )
++        self.assertTrue(output.strip())
++
++
++if __name__ == '__main__':
++    unittest.main()

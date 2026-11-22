@@ -1,0 +1,160 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..7889ad1 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -39,6 +39,10 @@ See the [Contributing Guide](contributing.md) for details.
+   provided, rather than rendering them as `key="key"`, so the same source
+   renders consistently under both the `html` and `xhtml` output formats
+   (#1501).
++* Fix a `TypeError` in the `toc` extension when a heading has an `id` attribute
++  without a value, such as `# Heading {: id }` with `attr_list`. Such a heading
++  is now treated as having no id: it gets the auto-generated id and appears in
++  the table of contents.
+ 
+ ## [3.11.2] - 2026-10-19
+ 
+diff --git a/markdown/extensions/toc.py b/markdown/extensions/toc.py
+index ba65225..fd124b8 100644
+--- a/markdown/extensions/toc.py
++++ b/markdown/extensions/toc.py
+@@ -388,7 +388,7 @@ class TocTreeprocessor(Treeprocessor):
+         # Get a list of id attributes
+         used_ids = set()
+         for el in doc.iter():
+-            if "id" in el.attrib:
++            if el.attrib.get("id") is not None:
+                 used_ids.add(el.attrib["id"])
+         id_counters: dict[str, int] = {}
+ 
+@@ -399,8 +399,8 @@ class TocTreeprocessor(Treeprocessor):
+                 innerhtml = render_inner_html(remove_fnrefs(el), self.md)
+                 name = strip_tags(innerhtml)
+ 
+-                # Do not override pre-existing ids
+-                if "id" not in el.attrib:
++                # Do not override pre-existing ids. A valueless `id` (e.g. `{: id }` via `attr_list`) is `None`.
++                if el.attrib.get("id") is None:
+                     el.attrib["id"] = unique(self.slugify(html.unescape(name), self.sep), used_ids, id_counters)
+ 
+                 data_toc_label = ''
+diff --git a/tests/test_syntax/extensions/test_attr_list.py b/tests/test_syntax/extensions/test_attr_list.py
+index 73c7796..8069f6b 100644
+--- a/tests/test_syntax/extensions/test_attr_list.py
++++ b/tests/test_syntax/extensions/test_attr_list.py
+@@ -146,6 +146,20 @@ class TestAttrListValuelessAttributes(TestCase):
+     maxDiff = None
+     default_kwargs = {'extensions': ['attr_list']}
+ 
++    def test_valueless_id_without_toc_unchanged(self):
++        self.assertMarkdownRenders(
++            '# Heading {: id }',
++            '<h1 id>Heading</h1>'
++        )
++
++    def test_ac_fr_004_1_valueless_id_without_toc_exact(self):
++        """AC-FR-004-1: `# Heading {: id }` with attr_list only renders exactly `<h1 id>Heading</h1>`."""
++        self.assertMarkdownRenders(
++            '# Heading {: id }',
++            '<h1 id>Heading</h1>',
++            extensions=['attr_list']
++        )
++
+     def test_valueless_non_boolean_preserved_xhtml(self):
+         self.assertMarkdownRenders(
+             '[download](file.txt){download}',
+diff --git a/tests/test_syntax/extensions/test_toc.py b/tests/test_syntax/extensions/test_toc.py
+index 12a07d5..429875a 100644
+--- a/tests/test_syntax/extensions/test_toc.py
++++ b/tests/test_syntax/extensions/test_toc.py
+@@ -19,6 +19,9 @@ Copyright 2004 Manfred Stienstra (the original version)
+ License: BSD (see LICENSE.md for details).
+ """
+ 
++import re
++
++import markdown
+ from markdown.test_tools import TestCase
+ from markdown import Markdown
+ from markdown.extensions.toc import TocExtension, strip_tags, unique
+@@ -1494,6 +1497,81 @@ class TestTOC(TestCase):
+             extensions=[TocExtension(), 'footnotes']
+         )
+ 
++    def test_valueless_id_gets_generated_id(self):
++        md = Markdown(extensions=['toc', 'attr_list'])
++        self.assertEqual(md.convert('# Heading {: id }'), '<h1 id="heading">Heading</h1>')
++        self.assertEqual(md.toc_tokens[0]['id'], 'heading')
++
++    def test_valueless_id_in_toc_marker_links(self):
++        md = Markdown(extensions=['toc', 'attr_list'])
++        output = md.convert('[TOC]\n\n# Heading {: id }')
++        self.assertIn('<h1 id="heading">Heading</h1>', output)
++        self.assertIn('href="#heading"', output)
++
++    def test_valueless_id_unique_with_duplicate_heading(self):
++        self.assertMarkdownRenders(
++            '# Heading {: id }\n\n# Heading',
++            '<h1 id="heading">Heading</h1>\n<h1 id="heading_1">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )
++
++    def test_empty_id_no_error(self):
++        self.assertMarkdownRenders(
++            '# Heading {: id="" }',
++            '<h1 id="">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )
++
++    def test_explicit_id_kept_in_toc(self):
++        md = Markdown(extensions=['toc', 'attr_list'])
++        output = md.convert('[TOC]\n\n# Heading {: id="intro" }')
++        self.assertIn('<h1 id="intro">Heading</h1>', output)
++        self.assertIn('href="#intro"', output)
++
++    def test_ac_fr_001_1_valueless_id_no_exception(self):
++        """AC-FR-001-1: `# Heading {: id }` with toc and attr_list converts without an exception and returns HTML."""
++        output = markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list'])
++        self.assertIsInstance(output, str)
++        self.assertIn('<h1', output)
++
++    def test_ac_fr_002_1_valueless_id_gets_generated_id(self):
++        """AC-FR-002-1: `# Heading {: id }` with toc and attr_list outputs `<h1 id="heading">`."""
++        output = markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list'])
++        self.assertIn('<h1 id="heading">', output)
++
++    def test_ac_fr_002_2_valueless_id_not_rendered_bare(self):
++        """AC-FR-002-2: `# Heading {: id }` with toc and attr_list does not output `<h1 id>`."""
++        output = markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list'])
++        self.assertNotIn('<h1 id>', output)
++
++    def test_ac_fr_002_3_valueless_id_in_toc(self):
++        """AC-FR-002-3: `[TOC]` + `# Heading {: id }` with toc and attr_list outputs `href="#heading"`."""
++        output = markdown.markdown('[TOC]\n\n# Heading {: id }', extensions=['toc', 'attr_list'])
++        self.assertIn('href="#heading"', output)
++
++    def test_ac_fr_002_4_valueless_id_ids_unique(self):
++        """AC-FR-002-4: `# Heading {: id }` + `# Heading` with toc and attr_list yields only unique id values."""
++        output = markdown.markdown('# Heading {: id }\n\n# Heading', extensions=['toc', 'attr_list'])
++        # Valueless ids are captured as None, so two valueless ids would also be detected as duplicates.
++        ids = re.findall(r'\sid(?:="([^"]*)")?', output)
++        self.assertTrue(ids, 'no id attributes found in output')
++        self.assertEqual(len(ids), len(set(ids)), f'duplicate ids in output: {output}')
++
++    def test_ac_fr_002_5_explicit_empty_id_no_exception(self):
++        """AC-FR-002-5: `# Heading {: id="" }` with toc and attr_list converts without an exception."""
++        output = markdown.markdown('# Heading {: id="" }', extensions=['toc', 'attr_list'])
++        self.assertIn('Heading', output)
++
++    def test_ac_fr_003_1_explicit_id_kept(self):
++        """AC-FR-003-1: `# Heading {: id="intro" }` with toc and attr_list outputs `<h1 id="intro">`."""
++        output = markdown.markdown('# Heading {: id="intro" }', extensions=['toc', 'attr_list'])
++        self.assertIn('<h1 id="intro">', output)
++
++    def test_ac_fr_003_2_explicit_id_toc_link_kept(self):
++        """AC-FR-003-2: `[TOC]` + `# Heading {: id="intro" }` with toc and attr_list outputs `href="#intro"`."""
++        output = markdown.markdown('[TOC]\n\n# Heading {: id="intro" }', extensions=['toc', 'attr_list'])
++        self.assertIn('href="#intro"', output)
++
+ 
+ class testStripTags(TestCase):
+ 

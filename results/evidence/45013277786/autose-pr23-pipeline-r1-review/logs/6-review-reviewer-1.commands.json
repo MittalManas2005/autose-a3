@@ -1,0 +1,98 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1169 tests in 1.126s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.inline.test_reference_code_labels",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.002s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown/inlinepatterns.py tests/test_syntax/inline/test_reference_code_labels.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`a<b`]\\n\\n[`a<b`]: https://example.com'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: a"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`a&b`]\\n\\n[`a&b`]: https://example.com'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command can't be checked before it runs"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`Foo`]\\n\\n[`foo`]: https://example.com'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following parts require approval: Foo, foo"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[*a* `b`]\\n\\n[*a* `b`]: https://example.com'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: b"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[text][`foo`] and [`x`][`foo`]\\n\\n[`foo`]: https://example.com'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following parts require approval: foo, x"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`foo`]\\n\\n[`foo`]: https://example.com'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: foo"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[`a<b`]\\n\\n[`a<b`]: https://example.com\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>[<code>a&lt;b</code>]</p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[`a&b`]\\n\\n[`a&b`]: https://example.com\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>[<code>a&amp;b</code>]</p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[`Foo`]\\n\\n[`foo`]: https://example.com\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://example.com\"><code>Foo</code></a></p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[*a* `b`]\\n\\n[*a* `b`]: https://example.com\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://example.com\"><em>a</em> <code>b</code></a></p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[text][`foo`] and [`x`][`foo`]\\n\\n[`foo`]: https://example.com\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://example.com\">text</a> and <a href=\"https://example.com\"><code>x</code></a></p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[`foo`]\\n\\n[`foo`]: https://example.com\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://example.com\"><code>foo</code></a></p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[`a&amp;b`]\\n\\n[`a&amp;b`]: https://example.com\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>[<code>a&amp;amp;b</code>]</p>"
+  }
+]

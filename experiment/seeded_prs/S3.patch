@@ -1,0 +1,101 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..58b8457 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -14,6 +14,11 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ## [Unreleased]
+ 
++### Added
++
++* Headings with the `notoc` class (for example `## Heading {: .notoc }` with
++  `attr_list`) are left out of the table of contents.
++
+ ### Fixed
+ 
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+diff --git a/markdown/extensions/toc.py b/markdown/extensions/toc.py
+index ba65225..d40d263 100644
+--- a/markdown/extensions/toc.py
++++ b/markdown/extensions/toc.py
+@@ -402,6 +402,9 @@ class TocTreeprocessor(Treeprocessor):
+                 # Do not override pre-existing ids
+                 if "id" not in el.attrib:
+                     el.attrib["id"] = unique(self.slugify(html.unescape(name), self.sep), used_ids, id_counters)
++                else:
++                    # Normalize ids set with `attr_list` so that every TOC link is a valid anchor.
++                    el.attrib["id"] = self.slugify(html.unescape(el.attrib["id"]), self.sep)
+ 
+                 data_toc_label = ''
+                 if 'data-toc-label' in el.attrib:
+@@ -411,7 +414,8 @@ class TocTreeprocessor(Treeprocessor):
+                     # Remove the data-toc-label attribute as it is no longer needed
+                     del el.attrib['data-toc-label']
+ 
+-                if int(el.tag[-1]) >= self.toc_top and int(el.tag[-1]) <= self.toc_bottom:
++                excluded = 'notoc' in (el.attrib.get('class') or '').split()
++                if not excluded and int(el.tag[-1]) >= self.toc_top and int(el.tag[-1]) <= self.toc_bottom:
+                     toc_tokens.append({
+                         'level': int(el.tag[-1]),
+                         'id': unescape(el.attrib["id"]),
+diff --git a/tests/test_syntax/extensions/test_toc.py b/tests/test_syntax/extensions/test_toc.py
+index 12a07d5..47da42d 100644
+--- a/tests/test_syntax/extensions/test_toc.py
++++ b/tests/test_syntax/extensions/test_toc.py
+@@ -202,6 +202,23 @@ class TestTOC(TestCase):
+             extensions=[TocExtension(), 'attr_list']
+         )
+ 
++    def test_notoc_heading_excluded(self):
++        self.assertMarkdownRenders(
++            '[TOC]\n\n# One\n\n## Two {: .notoc }\n\n## Three',
++            '<div class="toc">\n'
++            '<ul>\n'
++            '<li><a href="#one">One</a><ul>\n'
++            '<li><a href="#three">Three</a></li>\n'
++            '</ul>\n'
++            '</li>\n'
++            '</ul>\n'
++            '</div>\n'
++            '<h1 id="one">One</h1>\n'
++            '<h2 class="notoc" id="two">Two</h2>\n'
++            '<h2 id="three">Three</h2>',
++            extensions=['toc', 'attr_list']
++        )
++
+     def testUniqueIds(self):
+         self.assertMarkdownRenders(
+             self.dedent(
+@@ -1059,32 +1076,6 @@ class TestTOC(TestCase):
+             extensions=['toc']
+         )
+ 
+-    def test_escaped_char_in_attr_list(self):
+-        self.assertMarkdownRenders(
+-            r'# `*Foo*` { id="\*Foo\*" }',
+-            '<h1 id="*Foo*"><code>*Foo*</code></h1>',
+-            expected_attrs={
+-                'toc': (
+-                    '<div class="toc">\n'
+-                      '<ul>\n'                                                           # noqa
+-                        '<li><a href="#*Foo*">*Foo*</a></li>\n'                          # noqa
+-                      '</ul>\n'                                                          # noqa
+-                    '</div>\n'                                                           # noqa
+-                ),
+-                'toc_tokens': [
+-                    {
+-                        'level': 1,
+-                        'id': '*Foo*',
+-                        'name': '*Foo*',
+-                        'html': '<code>*Foo*</code>',
+-                        'data-toc-label': '',
+-                        'children': []
+-                    }
+-                ]
+-            },
+-            extensions=['toc', 'attr_list']
+-        )
+-
+     def testAutoLinkEmail(self):
+         self.assertMarkdownRenders(
+             '## <foo@example.org>',

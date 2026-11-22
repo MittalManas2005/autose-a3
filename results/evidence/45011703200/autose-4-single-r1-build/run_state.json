@@ -1,0 +1,89 @@
+{
+  "created": "2026-11-22T10:17:56Z",
+  "transitions": [
+    {
+      "at": "2026-11-22T10:20:36Z",
+      "from": "single",
+      "to": "release",
+      "reason": "all checks passed"
+    }
+  ],
+  "checks": [
+    {
+      "at": "2026-11-22T10:20:19Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:19Z",
+      "stage": 2,
+      "check": "design names files and functions",
+      "ok": false,
+      "reasons": [
+        "tests/test_syntax/extensions/test_fenced_code.py: symbol 'TestFencedCodeWithAttrList' not found (use new_symbols for new ones)"
+      ]
+    },
+    {
+      "at": "2026-11-22T10:20:26Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:26Z",
+      "stage": 2,
+      "check": "design names files and functions",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:27Z",
+      "stage": 3,
+      "check": "code builds",
+      "ok": false,
+      "reasons": [
+        "markdown/extensions/fenced_code.py: new words rejected by the repository's spell check (CI job `checkspelling`): bool. CI spell-checks docstrings, comments and documentation: put identifiers, code and IDs in backticks, or use plain English words."
+      ]
+    },
+    {
+      "at": "2026-11-22T10:20:34Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:34Z",
+      "stage": 2,
+      "check": "design names files and functions",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:35Z",
+      "stage": 3,
+      "check": "code builds",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:36Z",
+      "stage": 4,
+      "check": "new and existing tests pass",
+      "ok": true,
+      "reasons": []
+    }
+  ],
+  "status": "ready",
+  "issue": "4",
+  "round": 1,
+  "variant": "single",
+  "base_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_stage": "requirements",
+  "base_tests": 1166,
+  "finished": true
+}

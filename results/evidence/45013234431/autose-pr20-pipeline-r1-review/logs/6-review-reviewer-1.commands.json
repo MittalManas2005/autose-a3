@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1169 tests in 1.194s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python linenums guess_lang=false noclasses data-x=\\\"y\\\" }\\nprint(1)\\n```', extensions=['fenced_code','attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown(open('.autose_review/issue.md').read().split('```python')[0][:0] + chr(96)*3 + ' { .python linenums guess_lang=false noclasses data-x=y }\\nprint(1)\\n' + chr(96)*3, extensions=['fenced_code','attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  }
+]

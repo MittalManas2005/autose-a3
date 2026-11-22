@@ -1,0 +1,8 @@
+[
+  {
+    "command": "python -m unittest tests.test_cli_tab_length -v",
+    "denied": false,
+    "ok": true,
+    "output_tail": "ero and names `--tab_length`. ... ok\ntest_ac_nfr_001_1_existing_output_format_preserved (tests.test_cli_tab_length.TestTabLengthCliOption.test_ac_nfr_001_1_existing_output_format_preserved)\nAC-NFR-001-1: `python -m markdown -o html` output equals `markdown.markdown(text, output_format='html')`. ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.608s\n\nOK"
+  }
+]

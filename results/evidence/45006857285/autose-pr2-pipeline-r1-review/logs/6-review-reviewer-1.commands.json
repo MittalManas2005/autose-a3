@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": false,
+    "output_tail": "Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry. Running it outside the sandbox (dangerouslyDisableSandbox) is not allowed either."
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": false,
+    "output_tail": "Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry. Running it outside the sandbox (dangerouslyDisableSandbox) is not allowed either."
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": "........................................................................\n----------------------------------------------------------------------\nRan 72 tests in 0.467s\n\nOK"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc tests.test_syntax.extensions.test_attr_list -v",
+    "denied": false,
+    "ok": true,
+    "output_tail": "ean_preserved_xhtml (tests.test_syntax.extensions.test_attr_list.TestAttrListValuelessAttributes.test_valueless_non_boolean_preserved_xhtml) ... ok\ntest_xhtml_only_boolean_attribute (tests.test_syntax.extensions.test_attr_list.TestAttrListValuelessAttributes.test_xhtml_only_boolean_attribute) ... ok\n\n----------------------------------------------------------------------\nRan 109 tests in 0.494s\n\nOK"
+  }
+]

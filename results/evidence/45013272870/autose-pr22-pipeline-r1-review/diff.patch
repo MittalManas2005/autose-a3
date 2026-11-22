@@ -1,0 +1,68 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..96286ed 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -14,6 +14,10 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ## [Unreleased]
+ 
++### Added
++
++* Add a `--tab_length` option to the command line interface.
++
+ ### Fixed
+ 
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+diff --git a/markdown/__main__.py b/markdown/__main__.py
+index 60f9a5e..5afd3d3 100644
+--- a/markdown/__main__.py
++++ b/markdown/__main__.py
+@@ -65,6 +65,9 @@ def parse_options(args=None, values=None):
+     parser.add_option("-o", "--output_format", dest="output_format",
+                       default='xhtml', metavar="OUTPUT_FORMAT",
+                       help="Use output format 'xhtml' (default) or 'html'.")
++    parser.add_option("-t", "--tab_length", dest="tab_length", type="int",
++                      default=2, metavar="TAB_LENGTH",
++                      help="Number of spaces per indentation level.")
+     parser.add_option("-n", "--no_lazy_ol", dest="lazy_ol",
+                       action='store_false', default=True,
+                       help="Observe number of first item of ordered lists.")
+@@ -121,7 +124,8 @@ def parse_options(args=None, values=None):
+         'extension_configs': extension_configs,
+         'encoding': options.encoding,
+         'output_format': options.output_format,
+-        'lazy_ol': options.lazy_ol
++        'lazy_ol': options.lazy_ol,
++        'tab_length': options.tab_length
+     }
+ 
+     return opts, options.verbose
+diff --git a/tests/test_apis.py b/tests/test_apis.py
+index b4afc4f..db46718 100644
+--- a/tests/test_apis.py
++++ b/tests/test_apis.py
+@@ -797,6 +797,7 @@ class TestCliOptionParsing(unittest.TestCase):
+             'encoding': None,
+             'output_format': 'xhtml',
+             'lazy_ol': True,
++            'tab_length': 2,
+             'extensions': [],
+             'extension_configs': {},
+         }
+@@ -806,6 +807,16 @@ class TestCliOptionParsing(unittest.TestCase):
+         if os.path.isfile(self.tempfile):
+             os.remove(self.tempfile)
+ 
++    def testTabLengthOption(self):
++        options, logging_level = parse_options(['--tab_length', '3'])
++        self.default_options['tab_length'] = 3
++        self.assertEqual(options, self.default_options)
++
++    def testTabLengthOptionEquals(self):
++        options, logging_level = parse_options(['--tab_length=4'])
++        self.default_options['tab_length'] = 4
++        self.assertEqual(options, self.default_options)
++
+     def testNoOptions(self):
+         options, logging_level = parse_options([])
+         self.assertEqual(options, self.default_options)

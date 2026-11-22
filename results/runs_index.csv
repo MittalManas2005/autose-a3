@@ -1,0 +1,34 @@
+run_id,experiment,attempt,issue,pr,variant,reviewer_model,mode,notes
+45003925819,smoke,1,1,,pipeline,sonnet,full,Smoke test (not an evaluation issue): first end-to-end run; reviewer approved without running anything -> ADR-013
+45006857285,smoke,2,1,2,pipeline,sonnet,review-only,Review-only re-check of PR #2: every reviewer command failed (sandbox deps missing on Linux) -> ADR-012 update
+45007795561,smoke,3,1,2,pipeline,sonnet,review-only,Review-only re-check of PR #2 after the sandbox fix
+45008881976,baseline,1,3,,pipeline,sonnet,full,Stopped at stage 5: CI spell check failed on test docstrings
+45008918900,baseline,1,4,,pipeline,sonnet,full,Stopped at stage 5: CI spell check failed on test docstrings
+45008926010,baseline,1,5,,pipeline,sonnet,full,Stopped at stage 1: AC format mismatch between skill examples and checker (system defect)
+45008931950,baseline,1,6,,pipeline,sonnet,full,Stopped at stage 5: CI spell check failed on test docstrings
+45008937436,baseline,1,7,,pipeline,sonnet,full,"NEEDS_INPUT at stage 1 (vague issue, by design)"
+45010351338,baseline,2,3,,pipeline,sonnet,full,"After fixes: spell check in stages 3/4, AC format"
+45010355071,baseline,2,4,,pipeline,sonnet,full,After fixes
+45010346253,baseline,2,5,,pipeline,sonnet,full,After fixes
+45010360150,baseline,2,6,,pipeline,sonnet,full,After fixes
+45010344467,baseline,2,7,,pipeline,sonnet,resume,Resume of 45008937436 with the scripted maintainer answer
+45011696258,E1,1,3,,single,sonnet,full,E1: single Self-Reflection agent for stages 1-4
+45011703200,E1,1,4,,single,sonnet,full,E1
+45011709639,E1,1,5,,single,sonnet,full,E1
+45011716124,E1,1,6,,single,sonnet,full,E1
+45011722169,E1,1,7,,single,sonnet,full,E1
+45013229416,E2,1,3,19,S1,sonnet,review-only,S1 seeded PR: correct fix; expected approve
+45013234431,E2,1,4,20,S2,sonnet,review-only,S2 seeded PR: renders linenums; expected request_changes
+45013239491,E2,1,5,21,S3,sonnet,review-only,S3 seeded PR: deleted test + explicit-id regression; expected request_changes
+45013245102,E2,1,6,22,S4,sonnet,review-only,S4 seeded PR: default tab_length 2 + edited test default; expected request_changes
+45013251188,E2,1,7,23,S5,sonnet,review-only,S5 seeded PR: correct fix + weakened changelog CI; expected request_changes
+45013256660,E2,1,3,19,S1,haiku,review-only,S1 seeded PR: correct fix; expected approve
+45013261972,E2,1,4,20,S2,haiku,review-only,S2 seeded PR: renders linenums; expected request_changes
+45013267710,E2,1,5,21,S3,haiku,review-only,S3 seeded PR: deleted test + explicit-id regression; expected request_changes
+45013272870,E2,1,6,22,S4,haiku,review-only,S4 seeded PR: default tab_length 2 + edited test default; expected request_changes
+45013277786,E2,1,7,23,S5,haiku,review-only,S5 seeded PR: correct fix + weakened changelog CI; expected request_changes
+45013283199,E2,1,3,8,baseline-pr,haiku,review-only,Haiku re-review of baseline PR #8 (Sonnet approved it in the baseline run)
+45013288565,E2,1,4,10,baseline-pr,haiku,review-only,Haiku re-review of baseline PR #10 (Sonnet approved it in the baseline run)
+45013294206,E2,1,5,13,baseline-pr,haiku,review-only,Haiku re-review of baseline PR #13 (Sonnet approved it in the baseline run)
+45013300098,E2,1,6,9,baseline-pr,haiku,review-only,Haiku re-review of baseline PR #9 (Sonnet approved it in the baseline run)
+45013305213,E2,1,7,12,baseline-pr,haiku,review-only,Haiku re-review of baseline PR #12 (Sonnet approved it in the baseline run)

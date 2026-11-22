@@ -1,0 +1,27 @@
+{
+  "verdict": "request_changes",
+  "target_stage": "implementation",
+  "summary": "The code fix works and the tests pass, but the PR also edits a CI workflow file, which is out of scope and against the repository's rules.",
+  "verified": [
+    "python -m unittest discover tests: 1169 tests OK (52 skipped)",
+    "[`Foo`] with definition [`foo`] resolves to a link (case-insensitive)",
+    "[a `b` c] with a matching definition resolves to a link",
+    "[x][`foo`] resolves to a link"
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "file": ".github/workflows/changelog-enforcer.yml",
+      "line": 15,
+      "issue": "The PR modifies a CI file by adding `continue-on-error: true` to the changelog enforcer step. This is unrelated to the issue and weakens a project check.",
+      "evidence": "diff.patch hunk on .github/workflows/changelog-enforcer.yml adds '# Do not block pull requests on changelog formatting.' and 'continue-on-error: true'."
+    },
+    {
+      "severity": "minor",
+      "file": "docs/changelog.md",
+      "line": 19,
+      "issue": "The changelog entry does not reference issue #7, unlike neighbouring entries.",
+      "evidence": "The added entry reads 'Resolve reference links whose label contains inline code...' with no (#7) reference."
+    }
+  ]
+}

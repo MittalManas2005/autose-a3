@@ -1,0 +1,74 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1183 tests in 1.366s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python linenums }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python linenums }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list', 'codehilite']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python linenums }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list', 'codehilite'], extension_configs={'codehilite': {'use_pygments': False}}))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python hl_lines=\\\"1 2\\\" data-y=\\\"z\\\" }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python linenums=\\\"0\\\" }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list', 'codehilite'], extension_configs={'codehilite': {'use_pygments': False}}))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; F=chr(96)*3; src=F+' { .python linenums }\\nprint(1)\\n'+F; print(markdown.markdown(src, extensions=['fenced_code', 'attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<pre><code class=\"language-python\">print(1)\n</code></pre>"
+  },
+  {
+    "command": "python -c \"import markdown; F=chr(96)*3; src=F+' { .python linenums }\\nprint(1)\\n'+F; print(markdown.markdown(src, extensions=['fenced_code', 'attr_list', 'codehilite'], extension_configs={'codehilite': {'use_pygments': False}}))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": ")}=\"{_escape_attrib_html(v)}\"'\n                            ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/markdown/markdown/markdown/serializers.py\", line 137, in _escape_attrib_html\n    _raise_serialization_error(text)\n  File \"/home/runner/work/markdown/markdown/markdown/serializers.py\", line 81, in _raise_serialization_error\n    raise TypeError(\nTypeError: cannot serialize None (type NoneType)"
+  },
+  {
+    "command": "python -c \"import markdown; F=chr(96)*3; src=F+' { .python hl_lines=\\\"1 2\\\" data-y=\\\"z\\\" }\\nprint(1)\\n'+F; print(markdown.markdown(src, extensions=['fenced_code', 'attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<pre><code class=\"language-python\" hl_lines=\"[1, 2]\" data-y=\"z\">print(1)\n</code></pre>"
+  },
+  {
+    "command": "python -c \"import markdown; F=chr(96)*3; src=F+' { .python linenums=\\\"0\\\" }\\nprint(1)\\n'+F; print(markdown.markdown(src, extensions=['fenced_code', 'attr_list', 'codehilite']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<pre class=\"codehilite\"><code class=\"language-python\">print(1)\n</code></pre>"
+  },
+  {
+    "command": "python -m flake8 markdown/extensions/fenced_code.py tests/test_syntax/extensions/test_fenced_code.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_fenced_code",
+    "denied": false,
+    "ok": true,
+    "output_tail": "..........................................................\n----------------------------------------------------------------------\nRan 58 tests in 0.036s\n\nOK"
+  }
+]

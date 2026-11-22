@@ -1,0 +1,32 @@
+[
+  {
+    "command": "python -m compileall -q markdown",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc tests.test_syntax.extensions.test_attr_list",
+    "denied": false,
+    "ok": true,
+    "output_tail": "....................................................................................................\n----------------------------------------------------------------------\nRan 100 tests in 0.484s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest -v tests.test_syntax.extensions.test_toc.TestTOC.test_valueless_id_gets_generated_id tests.test_syntax.extensions.test_toc.TestTOC.test_valueless_id_in_toc_marker_links tests.test_syntax.extensions.test_toc.TestTOC.test_valueless_id_unique_with_duplicate_heading tests.test_syntax.extensions.test_toc.TestTOC.test_empty_id_no_error tests.test_syntax.extensions.test_toc.TestTOC.test_explicit_id_kept_in_toc tests.test_syntax.extensions.test_attr_list.TestAttrListValuelessAttributes.test_valueless_id_without_toc_unchanged",
+    "denied": false,
+    "ok": true,
+    "output_tail": "mpty_id_no_error) ... ok\ntest_explicit_id_kept_in_toc (tests.test_syntax.extensions.test_toc.TestTOC.test_explicit_id_kept_in_toc) ... ok\ntest_valueless_id_without_toc_unchanged (tests.test_syntax.extensions.test_attr_list.TestAttrListValuelessAttributes.test_valueless_id_without_toc_unchanged) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.027s\n\nOK"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1172 tests in 1.496s\n\nOK (skipped=52)"
+  }
+]

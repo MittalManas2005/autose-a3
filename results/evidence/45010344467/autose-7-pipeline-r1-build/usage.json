@@ -1,0 +1,74 @@
+[
+  {
+    "role": "requirements",
+    "stage": "1-requirements",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 45469,
+    "cache_read_input_tokens": 236820,
+    "output_tokens": 16678,
+    "cost_usd_list_price": 0.019802399999999998,
+    "num_turns": 12,
+    "duration_s": 71.2,
+    "permission_denials": 0
+  },
+  {
+    "role": "design",
+    "stage": "2-design",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 58932,
+    "cache_read_input_tokens": 595301,
+    "output_tokens": 19676,
+    "cost_usd_list_price": 0.02757981,
+    "num_turns": 22,
+    "duration_s": 88.3,
+    "permission_denials": 0
+  },
+  {
+    "role": "implementer",
+    "stage": "3-implementation",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 28,
+    "cache_creation_input_tokens": 40107,
+    "cache_read_input_tokens": 593266,
+    "output_tokens": 8827,
+    "cost_usd_list_price": 0.01837036,
+    "num_turns": 25,
+    "duration_s": 40.3,
+    "permission_denials": 0
+  },
+  {
+    "role": "tester",
+    "stage": "4-testing",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 22383,
+    "cache_read_input_tokens": 172343,
+    "output_tokens": 4327,
+    "cost_usd_list_price": 0.00836473,
+    "num_turns": 8,
+    "duration_s": 19.4,
+    "permission_denials": 0
+  }
+]

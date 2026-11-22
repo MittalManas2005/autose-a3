@@ -1,0 +1,96 @@
+{
+  "created": "2026-11-22T10:01:47Z",
+  "transitions": [
+    {
+      "at": "2026-11-22T10:03:33Z",
+      "from": "requirements",
+      "to": "design",
+      "reason": "spec check passed"
+    },
+    {
+      "at": "2026-11-22T10:04:18Z",
+      "from": "design",
+      "to": "implementation",
+      "reason": "design check passed"
+    },
+    {
+      "at": "2026-11-22T10:04:58Z",
+      "from": "implementation",
+      "to": "testing",
+      "reason": "build check passed"
+    },
+    {
+      "at": "2026-11-22T10:05:26Z",
+      "from": "testing",
+      "to": "release",
+      "reason": "all new and existing tests pass"
+    }
+  ],
+  "checks": [
+    {
+      "at": "2026-11-22T10:03:33Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:04:18Z",
+      "stage": 2,
+      "check": "design names files and functions",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:04:58Z",
+      "stage": 3,
+      "check": "code builds (guard + compile + flake8)",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:05:26Z",
+      "stage": 4,
+      "check": "new and existing tests pass",
+      "ok": true,
+      "reasons": []
+    }
+  ],
+  "status": "ready",
+  "issue": "5",
+  "round": 1,
+  "variant": "pipeline",
+  "base_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_stage": "requirements",
+  "base_tests": 1166,
+  "ac_ids": [
+    "AC-FR-001-1",
+    "AC-FR-001-2",
+    "AC-FR-001-3",
+    "AC-FR-001-4",
+    "AC-FR-001-5",
+    "AC-FR-002-1",
+    "AC-FR-002-2",
+    "AC-FR-002-3",
+    "AC-FR-003-1",
+    "AC-FR-004-1",
+    "AC-FR-004-2",
+    "AC-FR-005-1"
+  ],
+  "inferred_ac_ids": [
+    "AC-FR-001-1",
+    "AC-FR-001-2",
+    "AC-FR-001-3",
+    "AC-FR-001-4",
+    "AC-FR-001-5",
+    "AC-FR-002-1",
+    "AC-FR-002-2",
+    "AC-FR-002-3",
+    "AC-FR-003-1",
+    "AC-FR-004-1",
+    "AC-FR-004-2",
+    "AC-FR-005-1"
+  ],
+  "finished": true
+}

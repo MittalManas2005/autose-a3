@@ -1,0 +1,62 @@
+[
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_fenced_code_bool_options",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.040s\n\nOK"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1169 tests in 1.627s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('``` { .python linenums }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('``` { .python linenums=\\\"1\\\" guess_lang noclasses }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('``` { .python }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('``` { .python linenums=false }\\nprint(1)\\n```', extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; bt=chr(96)*3; print(repr(markdown.markdown(bt+' { .python linenums }\\nprint(1)\\n'+bt, extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<pre><code class=\"language-python\" linenums=\"True\">print(1)\\n</code></pre>'"
+  },
+  {
+    "command": "python -c \"import markdown; bt=chr(96)*3; print(repr(markdown.markdown(bt+' { .python linenums=\\\"1\\\" guess_lang noclasses }\\nprint(1)\\n'+bt, extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<pre><code class=\"language-python\" linenums=\"True\" guess_lang=\"True\" noclasses=\"True\">print(1)\\n</code></pre>'"
+  },
+  {
+    "command": "python -c \"import markdown; bt=chr(96)*3; print(repr(markdown.markdown(bt+' { .python }\\nprint(1)\\n'+bt, extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<pre><code class=\"language-python\">print(1)\\n</code></pre>'"
+  },
+  {
+    "command": "python -c \"import markdown; bt=chr(96)*3; print(repr(markdown.markdown(bt+' { .python linenums=false }\\nprint(1)\\n'+bt, extensions=['fenced_code', 'attr_list'])))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<pre><code class=\"language-python\" linenums=\"False\">print(1)\\n</code></pre>'"
+  }
+]

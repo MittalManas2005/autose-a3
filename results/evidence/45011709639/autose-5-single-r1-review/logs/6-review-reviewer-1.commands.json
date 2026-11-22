@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1175 tests in 1.414s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; m=markdown.Markdown(extensions=['toc','attr_list']); print(m.convert('[TOC]\\n\\n# One\\n\\n## Two {: .notoc }\\n\\n### Four\\n\\n## Three {: .notocx}\\n\\n## Five {: .a .notoc #x}\\n\\n## Six {: class}')); print(m.toc_tokens)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "ix\">Six</h2>\n[{'level': 1, 'id': 'one', 'name': 'One', 'html': 'One', 'data-toc-label': '', 'children': [{'level': 3, 'id': 'four', 'name': 'Four', 'html': 'Four', 'data-toc-label': '', 'children': []}, {'level': 2, 'id': 'three', 'name': 'Three', 'html': 'Three', 'data-toc-label': '', 'children': []}, {'level': 2, 'id': 'six', 'name': 'Six', 'html': 'Six', 'data-toc-label': '', 'children': []}]}]"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": "............................................................................\n----------------------------------------------------------------------\nRan 76 tests in 0.435s\n\nOK"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "verdict": "approve",
+  "target_stage": "none",
+  "summary": "The PR adds an int-typed `--tab_length` option that is only passed through when given. Both `--tab_length=2` and `--tab_length 2` work, and the default options dict is unchanged. The changelog and CLI docs are updated, and the tests are meaningful.",
+  "verified": [
+    "`python -m unittest discover tests` passed: 1172 tests, OK, 52 skipped.",
+    "`python -m unittest tests.test_cli_tab_length` passed: 6 tests, OK.",
+    "flake8 on markdown/__main__.py and the new test file reported nothing.",
+    "`parse_options` accepts `--tab_length=2` and `--tab_length 2`, and combines correctly with `-x toc`.",
+    "The new tests include a subprocess run of `python -m markdown --tab_length=2` that is compared against `markdown.markdown(..., tab_length=2)`, plus a test that the default options dict has no `tab_length` key.",
+    "Zero and negative values are passed through, which matches the Python API.",
+    "No existing tests were changed, and no CI files were touched."
+  ],
+  "findings": []
+}

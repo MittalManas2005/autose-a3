@@ -1,0 +1,26 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1179 tests in 1.138s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m flake8 markdown/extensions/toc.py tests/test_syntax/extensions/test_toc.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[TOC]\\n\\n# A {: id }\\n\\n# A\\n\\n## A {: id }\\n\\n# B {: id=\\\"\\\" }\\n\\n# C {: id=a }', extensions=['toc','attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#a_1\">A</a></li>\n<li><a href=\"#a_2\">A</a><ul>\n<li><a href=\"#a_3\">A</a></li>\n</ul>\n</li>\n<li><a href=\"#b\">B</a></li>\n<li><a href=\"#a\">C</a></li>\n</ul>\n</div>\n<h1 id=\"a_1\">A</h1>\n<h1 id=\"a_2\">A</h1>\n<h2 id=\"a_3\">A</h2>\n<h1 id=\"b\">B</h1>\n<h1 id=\"a\">C</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# A {: id }\\n\\n# A', extensions=['toc','attr_list'], extension_configs={'toc':{'permalink':True,'anchorlink':True}}))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"a\"><a class=\"toclink\" href=\"#a\">A</a><a class=\"headerlink\" href=\"#a\" title=\"Permanent link\">&para;</a></h1>\n<h1 id=\"a_1\"><a class=\"toclink\" href=\"#a_1\">A</a><a class=\"headerlink\" href=\"#a_1\" title=\"Permanent link\">&para;</a></h1>"
+  }
+]

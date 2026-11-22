@@ -1,0 +1,44 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1174 tests in 1.357s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python hl_lines=\\\"1 3\\\" linenums=\\\"1\\\" data-x=\\\"y\\\" use_pygments=false }\\nprint(1)\\n```', extensions=['fenced_code','attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('``` { .python linenums=\\\"1\\\" data-x=\\\"y\\\" }\\nprint(1)\\n```', extensions=[ 'fenced_code','attr_list','codehilite'], extension_configs={'codehilite':{'use_pygments':False}}))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_fenced_code",
+    "denied": false,
+    "ok": true,
+    "output_tail": ".................................................\n----------------------------------------------------------------------\nRan 49 tests in 0.033s\n\nOK"
+  },
+  {
+    "command": "python -c \"import markdown; f=chr(96)*3; print(markdown.markdown(f+' { .python hl_lines=\\\"1 3\\\" linenums=\\\"1\\\" data-x=\\\"y\\\" use_pygments=false }\\nprint(1)\\n'+f, extensions=['fenced_code','attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<pre><code class=\"language-python\" data-x=\"y\">print(1)\n</code></pre>"
+  },
+  {
+    "command": "python -c \"import markdown; f=chr(96)*3; print(markdown.markdown(f+' { .python linenums=\\\"1\\\" data-x=\\\"y\\\" }\\nprint(1)\\n'+f, extensions=['fenced_code','attr_list','codehilite'], extension_configs={'codehilite':{'use_pygments':False}}))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<pre><code class=\"language-python\" data-x=\"y\">print(1)\n</code></pre>"
+  },
+  {
+    "command": "python -m flake8 markdown/extensions/fenced_code.py tests/test_syntax/extensions/test_fenced_code.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  }
+]

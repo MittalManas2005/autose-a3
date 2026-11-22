@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -m unittest tests.test_cli_tab_length_ac -v",
+    "denied": false,
+    "ok": true,
+    "output_tail": "ut the option, the output equals `markdown.markdown()` with defaults. ... ok\ntest_ac_fr_005_1_markdown_py_matches_module (tests.test_cli_tab_length_ac.TestAcFr005.test_ac_fr_005_1_markdown_py_matches_module)\n`AC-FR-005-1`: `markdown_py --tab_length=2` equals `python -m markdown --tab_length=2`. ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.729s\n\nOK"
+  },
+  {
+    "command": "python -m unittest tests.test_apis.TestCliTabLength -v",
+    "denied": false,
+    "ok": true,
+    "output_tail": "NoTabLengthUnchanged) ... ok\ntestTabLengthMatchesLibrary (tests.test_apis.TestCliTabLength.testTabLengthMatchesLibrary) ... ok\ntestTabLengthNests (tests.test_apis.TestCliTabLength.testTabLengthNests) ... ok\ntestTabLengthSyntaxesMatch (tests.test_apis.TestCliTabLength.testTabLengthSyntaxesMatch) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.571s\n\nOK"
+  }
+]

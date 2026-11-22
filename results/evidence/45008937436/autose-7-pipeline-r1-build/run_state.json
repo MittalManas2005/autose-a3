@@ -1,0 +1,29 @@
+{
+  "created": "2026-11-22T09:44:16Z",
+  "transitions": [],
+  "checks": [
+    {
+      "at": "2026-11-22T09:45:15Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": false,
+      "reasons": [
+        "requirements need maintainer input: Q-001"
+      ]
+    }
+  ],
+  "status": "needs_input",
+  "issue": "7",
+  "round": 1,
+  "variant": "pipeline",
+  "base_sha": "758ab062032e4096fc14a4bb219015e83820c890",
+  "start_sha": "758ab062032e4096fc14a4bb219015e83820c890",
+  "start_stage": "requirements",
+  "base_tests": 1166,
+  "blocking_questions": [
+    "Q-001"
+  ],
+  "stop_stage": 1,
+  "stop_reason": "requirements need maintainer input: Q-001",
+  "finished": true
+}

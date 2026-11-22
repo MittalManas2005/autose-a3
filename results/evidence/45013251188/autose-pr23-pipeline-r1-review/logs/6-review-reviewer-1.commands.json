@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1169 tests in 1.443s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`Foo`] and [a `b` c] and [x][`foo`] and [``a`b``]\\n\\n[`foo`]: /u\\n[a `b` c]: /v\\n[``a`b``]: /w'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[\\x60Foo\\x60] and [a \\x60b\\x60 c] and [x][\\x60foo\\x60]\\n\\n[\\x60foo\\x60]: /u\\n[a \\x60b\\x60 c]: /v'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"/u\"><code>Foo</code></a> and <a href=\"/v\">a <code>b</code> c</a> and <a href=\"/u\">x</a></p>"
+  }
+]

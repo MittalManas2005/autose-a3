@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1169 tests in 1.688s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[TOC]\\n\\n# A {: id }\\n\\n# A {: id }\\n\\n# A\\n\\n# B {: id=\\\"\\\" }', extensions=['toc','attr_list'], extension_configs={'toc':{'permalink':True,'anchorlink':False}}))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "f=\"#a_2\">A</a></li>\n<li><a href=\"#b\">B</a></li>\n</ul>\n</div>\n<h1 id=\"a\">A<a class=\"headerlink\" href=\"#a\" title=\"Permanent link\">&para;</a></h1>\n<h1 id=\"a_1\">A<a class=\"headerlink\" href=\"#a_1\" title=\"Permanent link\">&para;</a></h1>\n<h1 id=\"a_2\">A<a class=\"headerlink\" href=\"#a_2\" title=\"Permanent link\">&para;</a></h1>\n<h1 id=\"b\">B<a class=\"headerlink\" href=\"#b\" title=\"Permanent link\">&para;</a></h1>"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc_valueless_id tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": "......................................................................\n----------------------------------------------------------------------\nRan 70 tests in 0.516s\n\nOK"
+  }
+]

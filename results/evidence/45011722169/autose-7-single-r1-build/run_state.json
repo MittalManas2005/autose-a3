@@ -1,0 +1,50 @@
+{
+  "created": "2026-11-22T10:18:14Z",
+  "transitions": [
+    {
+      "at": "2026-11-22T10:20:58Z",
+      "from": "single",
+      "to": "release",
+      "reason": "all checks passed"
+    }
+  ],
+  "checks": [
+    {
+      "at": "2026-11-22T10:20:54Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:54Z",
+      "stage": 2,
+      "check": "design names files and functions",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:56Z",
+      "stage": 3,
+      "check": "code builds",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:20:58Z",
+      "stage": 4,
+      "check": "new and existing tests pass",
+      "ok": true,
+      "reasons": []
+    }
+  ],
+  "status": "ready",
+  "issue": "7",
+  "round": 1,
+  "variant": "single",
+  "base_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_stage": "requirements",
+  "base_tests": 1166,
+  "finished": true
+}

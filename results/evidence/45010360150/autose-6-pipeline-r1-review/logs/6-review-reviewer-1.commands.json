@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1183 tests in 2.567s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m flake8 markdown/__main__.py tests/test_apis.py tests/test_cli_tab_length_ac.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"\nimport subprocess,sys\nfor a in (['--tab_length','2'],['--tab_length=2'],[],['--tab_length=0'],['--tab_length=-1']):\n    r=subprocess.run([sys.executable,'-m','markdown']+a,input='- a\\n\\n  - b\\n',capture_output=True,text=True)\n    print(a,r.returncode,repr(r.stdout),r.stderr[-200:])\n\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "['--tab_length', '2'] 0 '<ul>\\n<li>\\n<p>a</p>\\n<ul>\\n<li>b</li>\\n</ul>\\n</li>\\n</ul>' \n['--tab_length=2'] 0 '<ul>\\n<li>\\n<p>a</p>\\n<ul>\\n<li>b</li>\\n</ul>\\n</li>\\n</ul>' \n[] 0 '<ul>\\n<li>\\n<p>a</p>\\n</li>\\n<li>\\n<p>b</p>\\n</li>\\n</ul>' \n['--tab_length=0'] 0 '<pre><code>- a\\n\\n  - b\\n</code></pre>' \n['--tab_length=-1'] 0 '<pre><code>a\\n\\nb\\n</code></pre>'"
+  }
+]

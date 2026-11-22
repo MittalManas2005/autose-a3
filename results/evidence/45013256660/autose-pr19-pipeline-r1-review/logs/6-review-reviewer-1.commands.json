@@ -1,0 +1,50 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1169 tests in 1.660s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc_valueless_id",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.026s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown/extensions/toc.py tests/test_syntax/extensions/test_toc_valueless_id.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"heading\">Heading</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[TOC]\\n\\n# Heading {: id }\\n\\n# Heading\\n\\n# Heading {: id }\\n\\n# Other {: id=\\\"heading\\\" }', extensions=['toc', 'attr_list', 'extra']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#heading_1\">Heading</a></li>\n<li><a href=\"#heading_2\">Heading</a></li>\n<li><a href=\"#heading_3\">Heading</a></li>\n<li><a href=\"#heading\">Other</a></li>\n</ul>\n</div>\n<h1 id=\"heading_1\">Heading</h1>\n<h1 id=\"heading_2\">Heading</h1>\n<h1 id=\"heading_3\">Heading</h1>\n<h1 id=\"heading\">Other</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[TOC]\\n\\n# Heading {: id }\\n\\n## Sub {: id=\\\"\\\" }\\n\\n# Heading {: .cls }', extensions=['toc', 'attr_list'], ))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#heading\">Heading</a><ul>\n<li><a href=\"#sub\">Sub</a></li>\n</ul>\n</li>\n<li><a href=\"#heading_1\">Heading</a></li>\n</ul>\n</div>\n<h1 id=\"heading\">Heading</h1>\n<h2 id=\"sub\">Sub</h2>\n<h1 class=\"cls\" id=\"heading_1\">Heading</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list'], extension_configs={'toc': {'permalink': True, 'anchorlink': True}}))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"heading\"><a class=\"toclink\" href=\"#heading\">Heading</a><a class=\"headerlink\" href=\"#heading\" title=\"Permanent link\">&para;</a></h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# Heading {: data-toc-label }', extensions=['toc', 'attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "\n  File \"/home/runner/work/markdown/markdown/markdown/extensions/toc.py\", line 124, in unescape\n    return c.unescape(text)\n           ^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/markdown/markdown/markdown/treeprocessors.py\", line 470, in unescape\n    return self.RE.sub(self._unescape, text)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: expected string or bytes-like object, got 'NoneType'"
+  }
+]

@@ -1,0 +1,87 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..8ffed89 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -16,6 +16,9 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ### Fixed
+ 
++* Fix a crash in the `toc` extension when a heading has a valueless `id`
++  attribute from `attr_list`, such as `# Heading {: id }`. The heading now gets
++  the generated id, like a heading without an `id`.
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+   `<ssh://example.org>` (#1244).
+ * Fix quadratic-time id generation in the `toc` extension when many headers
+diff --git a/markdown/extensions/toc.py b/markdown/extensions/toc.py
+index ba65225..261f2af 100644
+--- a/markdown/extensions/toc.py
++++ b/markdown/extensions/toc.py
+@@ -400,7 +400,10 @@ class TocTreeprocessor(Treeprocessor):
+                 name = strip_tags(innerhtml)
+ 
+                 # Do not override pre-existing ids
+-                if "id" not in el.attrib:
++                if not el.attrib.get("id"):
++                    # The `attr_list` extension writes bare attributes with a
++                    # value of None. A valueless id is no id at all, so a slug
++                    # is generated for it like for any other id-less heading.
+                     el.attrib["id"] = unique(self.slugify(html.unescape(name), self.sep), used_ids, id_counters)
+ 
+                 data_toc_label = ''
+diff --git a/tests/test_syntax/extensions/test_toc_valueless_id.py b/tests/test_syntax/extensions/test_toc_valueless_id.py
+new file mode 100644
+index 0000000..8eb0c5e
+--- /dev/null
++++ b/tests/test_syntax/extensions/test_toc_valueless_id.py
+@@ -0,0 +1,51 @@
++"""
++Python Markdown
++
++A Python implementation of John Gruber's Markdown.
++
++Documentation: https://python-markdown.github.io/
++GitHub: https://github.com/Python-Markdown/markdown/
++PyPI: https://pypi.org/project/Markdown/
++
++Started by Manfred Stienstra (http://www.dwerg.net/).
++Maintained for a few years by Yuri Takhteyev (http://www.freewisdom.org).
++Currently maintained by Waylan Limberg (https://github.com/waylan),
++Dmitry Shachnev (https://github.com/mitya57) and Isaac Muse (https://github.com/facelessuser).
++
++Copyright 2007-2023 The Python Markdown Project (v. 1.7 and later)
++Copyright 2004, 2005, 2006 Yuri Takhteyev (v. 0.2-1.6b)
++Copyright 2004 Manfred Stienstra (the original version)
++
++License: BSD (see LICENSE.md for details).
++"""
++
++from markdown.test_tools import TestCase
++
++
++class TestTocValuelessId(TestCase):
++
++    def test_valueless_id_gets_generated_id(self):
++        self.assertMarkdownRenders(
++            '# Heading {: id }',
++            '<h1 id="heading">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )
++
++    def test_valueless_id_is_listed_in_toc(self):
++        self.assertMarkdownRenders(
++            '[TOC]\n\n# Heading {: id }',
++            '<div class="toc">\n'
++            '<ul>\n'
++            '<li><a href="#heading">Heading</a></li>\n'
++            '</ul>\n'
++            '</div>\n'
++            '<h1 id="heading">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )
++
++    def test_explicit_id_is_kept(self):
++        self.assertMarkdownRenders(
++            '# Heading {: id="custom" }',
++            '<h1 id="custom">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )

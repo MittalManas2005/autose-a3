@@ -1,0 +1,50 @@
+[
+  {
+    "command": "python -m compileall -q markdown",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_apis",
+    "denied": false,
+    "ok": false,
+    "output_tail": "kdownFromFile\n    md.convertFile(kwargs.get('input', None),\n  File \"/home/runner/work/markdown/markdown/markdown/core.py\", line 444, in convertFile\n    text = input_file.read()\n           ^^^^^^^^^^^^^^^^^\n  File \"<frozen codecs>\", line 503, in read\nTypeError: can't concat str to bytes\n\n----------------------------------------------------------------------\nRan 95 tests in 0.038s\n\nFAILED (errors=1)"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_apis",
+    "denied": false,
+    "ok": false,
+    "output_tail": "-------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/runner/work/markdown/markdown/tests/test_apis.py\", line 895, in testTabLengthOutputMatchesLibrary\n    self.assertEqual(outer.text.strip(), 'a')\nAssertionError: '' != 'a'\n+ a\n\n----------------------------------------------------------------------\nRan 95 tests in 0.038s\n\nFAILED (failures=1)"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_apis",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................\n----------------------------------------------------------------------\nRan 95 tests in 0.037s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1172 tests in 1.624s\n\nOK (skipped=52)"
+  }
+]

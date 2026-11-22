@@ -1,0 +1,15 @@
+{
+  "verdict": "approve",
+  "target_stage": "none",
+  "summary": "The fix is minimal and correct. A valueless or empty id is now treated as missing in both the used-ids scan and the id-assignment step.",
+  "verified": [
+    "python -m unittest discover tests: 1171 tests OK",
+    "tests.test_syntax.extensions.test_toc: 72 tests OK",
+    "'# A {: id }' now gives id=\"a\", and a duplicate heading gets a_1",
+    "'{: id=\"\" }' gets an auto id, and explicit ids ('{: id=x }') are preserved",
+    "A raw HTML `<div id>` outside a heading is untouched",
+    "flake8 is clean on the changed files",
+    "The changelog entry is present, no CI files changed, and the new tests cover the issue's scenarios"
+  ],
+  "findings": []
+}

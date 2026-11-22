@@ -1,0 +1,56 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1170 tests in 1.679s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`a`][1] and [`a`][]\\n\\n[1]: http://x\\n[`a`]: http://y'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: a"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`a`][1]\\n\\n[1]: http://x'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: a"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('[%sa%s][1] [%sa b%s] [%sa%s][]\\n\\n[1]: http://x\\n[%sa b%s]: http://y\\n[%sa%s]: http://z' % ((b,)*10)))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"http://x\"><code>a</code></a> <a href=\"http://y\"><code>a b</code></a> <a href=\"http://z\"><code>a</code></a>[]</p>"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('[x %sa<&b%s y]\\n\\n[x %sa<&b%s y]: http://x' % ((b,)*4)))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"http://x\">x <code>a&lt;&amp;b</code> y</a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('x [%sa%s][]\\n\\n[%sa%s]: http://z' % ((b,)*4)))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>x <a href=\"http://z\"><code>a</code></a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('x [a][] [b]\\n\\n[a]: http://z\\n[b]: http://y'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>x <a href=\"http://z\">a</a> <a href=\"http://y\">b</a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[a][1] [a b] [a][]\\n\\n[1]: http://x\\n[a b]: http://y\\n[a]: http://z'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"http://x\">a</a> <a href=\"http://z\">a b</a>[]</p>"
+  },
+  {
+    "command": "python -m flake8 markdown tests/test_syntax/inline/test_links.py tests/scratch_probe_issue7.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  }
+]

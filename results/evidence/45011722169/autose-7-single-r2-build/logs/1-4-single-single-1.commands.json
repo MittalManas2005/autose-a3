@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1170 tests in 1.193s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m flake8 markdown/inlinepatterns.py tests/test_syntax/inline/test_links.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  }
+]

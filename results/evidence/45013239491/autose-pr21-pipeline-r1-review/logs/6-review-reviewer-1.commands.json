@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1166 tests in 1.142s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# One { id=\\\"My_Id\\\" }\\n\\n## Two {: .notoc id=\\\"A B\\\" }', extensions=['toc','attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"my_id\">One</h1>\n<h2 class=\"notoc\" id=\"a-b\">Two</h2>"
+  }
+]

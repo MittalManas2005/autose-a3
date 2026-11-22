@@ -1,0 +1,80 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1183 tests in 2.645s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_apis tests.test_cli_tab_length_ac",
+    "denied": false,
+    "ok": true,
+    "output_tail": "..........................................................................................................\n----------------------------------------------------------------------\nRan 106 tests in 1.336s\n\nOK"
+  },
+  {
+    "command": "printf -- '- a\\n\\n  - b\\n' | python -m markdown --tab_length 2",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: python -m markdown --tab_length 2"
+  },
+  {
+    "command": "python -m markdown --tab_length=0 /dev/null",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -m flake8 markdown/__main__.py tests/test_apis.py tests/test_cli_tab_length_ac.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('- a\\n\\n\\t- b\\n', tab_length=0)))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<pre><code>- a\\n\\n- b\\n</code></pre>'"
+  },
+  {
+    "command": "python -m markdown --tab_length 2 /tmp/claude/review6/in.md",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -m markdown --tab_length=abc /tmp/claude/review6/in.md",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -m markdown --tab_length=-2 /tmp/claude/review6/in.md",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -c \"from markdown.__main__ import parse_options as p; print(p(['--tab_length=-2'])); print(p(['--tab_length=0']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "({'input': None, 'output': None, 'extensions': [], 'extension_configs': {}, 'encoding': None, 'output_format': 'xhtml', 'lazy_ol': True, 'tab_length': -2}, 50)\n({'input': None, 'output': None, 'extensions': [], 'extension_configs': {}, 'encoding': None, 'output_format': 'xhtml', 'lazy_ol': True, 'tab_length': 0}, 50)"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('- a\\n\\n  - b\\n', tab_length=2))); print(repr(markdown.markdown('- a\\n\\n  - b\\n', tab_length=-2)))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<ul>\\n<li>\\n<p>a</p>\\n<ul>\\n<li>b</li>\\n</ul>\\n</li>\\n</ul>'\n'<pre><code> a\\n\\n b\\n</code></pre>'"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('- a\\n\\n  - b\\n', tab_length=2, extensions=['markdown.extensions.toc'])))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<ul>\\n<li>\\n<p>a</p>\\n<ul>\\n<li>b</li>\\n</ul>\\n</li>\\n</ul>'"
+  },
+  {
+    "command": "python -m markdown --help",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  }
+]

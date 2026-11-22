@@ -1,0 +1,20 @@
+[
+  {
+    "role": "reviewer",
+    "stage": "6-review",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "sonnet",
+    "models": [
+      "claude-sonnet-5-5"
+    ],
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 7830,
+    "cache_read_input_tokens": 58101,
+    "output_tokens": 1017,
+    "cost_usd_list_price": 0.0473121,
+    "num_turns": 6,
+    "duration_s": 13.0,
+    "permission_denials": 0
+  }
+]

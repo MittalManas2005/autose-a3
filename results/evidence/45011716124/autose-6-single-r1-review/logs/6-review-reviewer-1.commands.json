@@ -1,0 +1,38 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1172 tests in 1.222s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m flake8 markdown/__main__.py tests/test_cli_tab_length.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown.__main__ as m; print(m.parse_options(['--tab_length','0'])); print(m.parse_options(['--tab_length=-1']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "({'input': None, 'output': None, 'extensions': [], 'extension_configs': {}, 'encoding': None, 'output_format': 'xhtml', 'lazy_ol': True, 'tab_length': 0}, 50)\n({'input': None, 'output': None, 'extensions': [], 'extension_configs': {}, 'encoding': None, 'output_format': 'xhtml', 'lazy_ol': True, 'tab_length': -1}, 50)"
+  },
+  {
+    "command": "python -m unittest tests.test_cli_tab_length",
+    "denied": false,
+    "ok": true,
+    "output_tail": "......\n----------------------------------------------------------------------\nRan 6 tests in 0.118s\n\nOK"
+  },
+  {
+    "command": "python -m markdown --tab_length 2 -x toc",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -c \"import markdown.__main__ as m; print(m.parse_options(['--tab_length=2','-x','toc'])[0]['tab_length'])\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "2"
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1179 tests in 1.666s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": "................................................................................\n----------------------------------------------------------------------\nRan 80 tests in 0.513s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown/extensions/toc.py tests/test_syntax/extensions/test_toc.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# Heading {: id }\\n\\n# Heading\\n\\n## Heading {: id=\\\"\\\" }\\n\\n# Heading {: id }', extensions=['toc', 'attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"heading\">Heading</h1>\n<h1 id=\"heading_1\">Heading</h1>\n<h2 id=\"heading_2\">Heading</h2>\n<h1 id=\"heading_3\">Heading</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[TOC]\\n\\n# Heading {: id }\\n\\n# Other {: id=\\\"heading-1\\\" }\\n\\n# Heading\\n\\n# Heading {: id }', extensions=['toc', 'attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#heading\">Heading</a></li>\n<li><a href=\"#heading-1\">Other</a></li>\n<li><a href=\"#heading_1\">Heading</a></li>\n<li><a href=\"#heading_2\">Heading</a></li>\n</ul>\n</div>\n<h1 id=\"heading\">Heading</h1>\n<h1 id=\"heading-1\">Other</h1>\n<h1 id=\"heading_1\">Heading</h1>\n<h1 id=\"heading_2\">Heading</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list', 'anchorlink', 'permalink']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "rt_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1140, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'anchorlink'"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list'], extension_configs={'toc': {'slugify': lambda v, s: 'x'}}))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"x\">Heading</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('# Heading {: id=\\\"heading\\\" }\\n\\n# Heading {: id }', extensions=['toc', 'attr_list']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"heading\">Heading</h1>\n<h1 id=\"heading_1\">Heading</h1>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[TOC]\\n\\n# Heading {: id }', extensions=['toc', 'attr_list'], extension_configs={'toc': {'permalink': True}}))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#heading\">Heading</a></li>\n</ul>\n</div>\n<h1 id=\"heading\">Heading<a class=\"headerlink\" href=\"#heading\" title=\"Permanent link\">&para;</a></h1>"
+  }
+]

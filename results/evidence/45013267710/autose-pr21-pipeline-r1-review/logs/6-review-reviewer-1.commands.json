@@ -1,0 +1,32 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1166 tests in 1.138s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown(r'# `*Foo*` { id=\\\"\\*Foo\\*\\\" }', extensions=['toc', 'attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: *Foo*"
+  },
+  {
+    "command": "python -c \"import markdown; m=markdown.Markdown(extensions=['toc','attr_list']); print(m.convert('[TOC]\\n\\n# One\\n\\n## Two {: .notoc }\\n\\n## Three')); print([t['id'] for t in m.toc_tokens])\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<div class=\"toc\">\n<ul>\n<li><a href=\"#one\">One</a><ul>\n<li><a href=\"#three\">Three</a></li>\n</ul>\n</li>\n</ul>\n</div>\n<h1 id=\"one\">One</h1>\n<h2 class=\"notoc\" id=\"two\">Two</h2>\n<h2 id=\"three\">Three</h2>\n['one']"
+  },
+  {
+    "command": "python -c \"import markdown; m=markdown.Markdown(extensions=['toc','attr_list']); print(m.convert('# Intro { #my_custom.id }\\n\\n## Sub {: #Some_Id }\\n\\n[link](#Some_Id)')); print([t['id'] for t in m.toc_tokens])\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h1 id=\"my_customid\">Intro</h1>\n<h2 id=\"some_id\">Sub</h2>\n<p><a href=\"#Some_Id\">link</a></p>\n['my_customid']"
+  },
+  {
+    "command": "python -c \"import markdown; m=markdown.Markdown(extensions=['toc','attr_list']); print(m.convert('## Two {: .notoc #x }\\n\\n## Dup {: #x }\\n\\n### Sub {: .notoc .other }\\n\\n#### Deep')); print(m.toc)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<h2 class=\"notoc\" id=\"x\">Two</h2>\n<h2 id=\"x\">Dup</h2>\n<h3 class=\"notoc other\" id=\"sub\">Sub</h3>\n<h4 id=\"deep\">Deep</h4>\n<div class=\"toc\">\n<ul>\n<li><a href=\"#x\">Dup</a><ul>\n<li><a href=\"#deep\">Deep</a></li>\n</ul>\n</li>\n</ul>\n</div>"
+  }
+]

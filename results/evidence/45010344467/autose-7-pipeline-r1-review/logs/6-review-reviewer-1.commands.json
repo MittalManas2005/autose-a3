@@ -1,0 +1,44 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1179 tests in 1.697s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`code`][ref]\\n\\n[`a b`]\\n\\n[`a  b`][]\\n\\n[ref]: /url\\n[`a b`]: /u2'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following parts require approval: code, a b, a  b"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('![`code`][]\\n\\n[`code`]: /url\\n\\n[a `x` b][]\\n\\n[a `x` b]: /v\\n\\n[``a`b``]\\n\\n[``a`b``]: /w'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('[B1code1B][ref]\\n\\n[B1a bB1]\\n\\n[B1a  bB1][]\\n\\n![B1imgB1][]\\n\\n[a B1xB1 b][]\\n\\n[ref]: /url\\n[B1a bB1]: /u2\\n[B1imgB1]: /i\\n[a B1xB1 b]: /v\\n'.replace('B1',b)))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"/url\">`code1B</a></p>\n<p><a href=\"/u2\"><code>a b</code></a></p>\n<p><a href=\"/u2\"><code>a  b</code></a></p>\n<p><img alt=\"img\" src=\"/i\" /></p>\n<p><a href=\"/v\">a <code>x</code> b</a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('[B1a<b>B1]\\n\\n[B1a<b>B1]: /u\\n\\n[B1xB1][ref]\\n\\n[B1xB1]: /bad\\n[ref]: /good'.replace('B1',b), extensions=['footnotes','attr_list','md_in_html']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"/u\"><code>a&lt;b&gt;</code></a></p>\n<p><a href=\"/good\"><code>x</code></a></p>"
+  },
+  {
+    "command": "python -m flake8 markdown tests/test_syntax/inline/test_links.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('* item [B1cB1] and *em [B1cB1][]*\\n\\n> [B1cB1]\\n\\n[B1cB1]: /u'.replace('B1',b)))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<ul>\n<li>item <a href=\"/u\"><code>c</code></a> and <em>em <a href=\"/u\"><code>c</code></a></em></li>\n</ul>\n<blockquote>\n<p><a href=\"/u\"><code>c</code></a></p>\n</blockquote>"
+  }
+]

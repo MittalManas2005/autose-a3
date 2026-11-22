@@ -1,0 +1,6 @@
+# Independent reviewer findings (address every item)
+
+The --tab_length option is wired up, but its CLI default is 2 instead of the library default of 4. Any CLI run that omits the option now renders differently from before, which the issue explicitly forbids. The new tests encode the wrong default, so they do not catch it.
+
+- [blocker] markdown/__main__.py:69 The --tab_length option defaults to 2, not the library default of 4. Any CLI run without the option now uses tab_length=2, so existing output changes. The issue requires output to be unchanged when the option is absent. — evidence: markdown/core.py:110 uses kwargs.get('tab_length', 4). With the PR, parse_options([]) returns tab_length=2. Input '- a\n\n    - b\n' with no option renders at HEAD as a nested <ul> (library default 4). With tab_length=2 it renders as <li>a<pre><code>- b, a changed result for input that never used the option.
+- [major] tests/test_apis.py:800 The test fixture default and testNoOptions were changed to expect 'tab_length': 2. This locks in the regression, and no test checks that omitting the option matches the library default of 4. — evidence: The diff adds 'tab_length': 2 to default_options in TestCliOptionParsing. testNoOptions asserts parse_options([]) equals that dict, so it passes only because the wrong default is in the test too.

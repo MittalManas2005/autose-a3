@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m compileall -q markdown",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_fenced_code",
+    "denied": false,
+    "ok": true,
+    "output_tail": ".................................................\n----------------------------------------------------------------------\nRan 49 tests in 0.041s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  }
+]

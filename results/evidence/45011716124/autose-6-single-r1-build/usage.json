@@ -1,0 +1,56 @@
+[
+  {
+    "role": "single",
+    "stage": "1-4-single",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 50228,
+    "cache_read_input_tokens": 772303,
+    "output_tokens": 18317,
+    "cost_usd_list_price": 0.026929729999999995,
+    "num_turns": 24,
+    "duration_s": 75.2,
+    "permission_denials": 0
+  },
+  {
+    "role": "single",
+    "stage": "1-4-single",
+    "attempt": 2,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 2550,
+    "cache_read_input_tokens": 317765,
+    "output_tokens": 1215,
+    "cost_usd_list_price": 0.03122568,
+    "num_turns": 5,
+    "duration_s": 7.6,
+    "permission_denials": 1
+  },
+  {
+    "role": "single",
+    "stage": "1-4-single",
+    "attempt": 3,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 2476,
+    "cache_read_input_tokens": 408222,
+    "output_tokens": 1710,
+    "cost_usd_list_price": 0.0366591,
+    "num_turns": 8,
+    "duration_s": 9.1,
+    "permission_denials": 0
+  }
+]

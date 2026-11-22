@@ -1,0 +1,155 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..df10a3f 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -16,6 +16,8 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ### Fixed
+ 
++* Fix reference links (`[`code`]` and `[`code`][]`) whose link text is a code span
++  not being linked to their definition.
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+   `<ssh://example.org>` (#1244).
+ * Fix quadratic-time id generation in the `toc` extension when many headers
+diff --git a/markdown/inlinepatterns.py b/markdown/inlinepatterns.py
+index 6f42bbf..6c17ca4 100644
+--- a/markdown/inlinepatterns.py
++++ b/markdown/inlinepatterns.py
+@@ -1207,7 +1207,7 @@ class ReferenceInlineProcessor(LinkInlineProcessor):
+         if not handled:
+             return None, None, None
+ 
+-        id, end, handled = self.evalId(data, index, text)
++        id, end, handled = self.evalId(data, index, self.code_span_source(text))
+         if not handled:
+             return None, None, None
+ 
+@@ -1220,6 +1220,34 @@ class ReferenceInlineProcessor(LinkInlineProcessor):
+ 
+         return self.makeTag(href, title, text), m.start(0), end
+ 
++    def code_span_source(self, text: str) -> str:
++        """
++        Return `text` with inline code placeholders replaced by the Markdown source of their code spans.
++
++        The backtick pass runs before the reference patterns, so a code span in the link text is already a
++        placeholder. Reference labels are matched against Markdown source, so the code span is restored with its
++        backticks. Other placeholders are returned unchanged.
++        """
++        try:
++            stash = self.md.treeprocessors['inline'].stashed_nodes
++        except KeyError:  # pragma: no cover
++            return text
++
++        def get_source(m: re.Match[str]) -> str:
++            node = stash.get(m.group(1))
++            if not isinstance(node, etree.Element) or node.tag != 'code':
++                return m.group(0)
++            # Reverse `util.code_escape`; `&amp;` must be restored last.
++            code = ''.join(node.itertext())
++            code = code.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
++            longest = max((len(run) for run in re.findall(r'`+', code)), default=0)
++            fence = '`' * (longest + 1)
++            if code.startswith('`') or code.endswith('`'):
++                code = f' {code} '
++            return f'{fence}{code}{fence}'
++
++        return util.INLINE_PLACEHOLDER_RE.sub(get_source, text)
++
+     def evalId(self, data: str, index: int, text: str) -> tuple[str | None, int, bool]:
+         """
+         Evaluate the id portion of `[ref][id]`.
+diff --git a/tests/scratch_probe_issue7.py b/tests/scratch_probe_issue7.py
+new file mode 100644
+index 0000000..6978ea5
+--- /dev/null
++++ b/tests/scratch_probe_issue7.py
+@@ -0,0 +1,40 @@
++import unittest
++import markdown
++
++CASES = [
++    "[`code`](http://x)",
++    "[a `code` b](http://x)",
++    "[`a]b`](http://x)",
++    "[`code`](http://x 'title')",
++    "[`code`][1]\n\n[1]: http://x",
++    "[`a(b`](http://x)",
++    "[`a`](http://x/`b`)",
++    "[code `x` link](http://x_y_z)",
++    "[`code`\n](http://x)",
++    "[link `code](http://x)` more",
++    "[`x`](<http://x>)",
++    "[*`x`*](http://x)",
++    "[**`x`**](http://x)",
++    "[`x` *y*](http://x)",
++    "[`a` \\[b](http://x)",
++    "[`x`](http://example.com/path_with_underscores)",
++    "[`x`]",
++    "[`x`] text",
++    "[`a`](http://x) [`b`](http://y)",
++    "[`a`][]\n\n[a]: http://x",
++    "[`a`](http://x \"t\")",
++    "[`a[b`](http://x)",
++    "[`a`](http://x`y)",
++    "- [`code`](http://x)",
++    "[`code`](http://x)`",
++    "[``a`b``](http://x)",
++]
++
++
++class Probe(unittest.TestCase):
++    def test_probe(self):
++        for src in CASES:
++            with self.subTest(src=src):
++                out = markdown.markdown(src)
++                print(repr(src), '=>', repr(out))
++        self.fail('probe')
+diff --git a/tests/test_syntax/inline/test_links.py b/tests/test_syntax/inline/test_links.py
+index e57bd99..9ce98aa 100644
+--- a/tests/test_syntax/inline/test_links.py
++++ b/tests/test_syntax/inline/test_links.py
+@@ -434,3 +434,43 @@ class TestReferenceLinks(TestCase):
+                 """
+             )
+         )
++
++    def test_ac_fr_001_1_short_reference_code_label(self):
++        """ AC-FR-001-1: A short reference whose label is a code span resolves to its definition. """
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [`code`]
++
++                [`code`]: http://example.com
++                """
++            ),
++            """<p><a href="http://example.com"><code>code</code></a></p>"""
++        )
++
++    def test_ac_fr_001_2_implicit_reference_code_label(self):
++        """ AC-FR-001-2: An implicit reference whose label is a code span resolves to its definition. """
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [`code`][]
++
++                [`code`]: http://example.com
++                """
++            ),
++            """<p><a href="http://example.com"><code>code</code></a></p>"""
++        )
++
++    def test_ac_fr_001_3_inline_link_code_text(self):
++        """ AC-FR-001-3: An inline link whose text is a code span is unchanged by the reference fix. """
++        self.assertMarkdownRenders(
++            "[`code`](http://example.com)",
++            """<p><a href="http://example.com"><code>code</code></a></p>"""
++        )
++
++    def test_ac_fr_001_4_undefined_reference_code_label(self):
++        """ AC-FR-001-4: A short reference whose label is a code span and has no definition is not a link. """
++        self.assertMarkdownRenders(
++            "[`code`]",
++            """<p>[<code>code</code>]</p>"""
++        )

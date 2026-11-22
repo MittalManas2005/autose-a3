@@ -1,0 +1,109 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..80cafb5 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -16,6 +16,10 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ### Fixed
+ 
++* Fix a `TypeError` crash in the `toc` extension when a heading has an `id`
++  attribute without a value, such as `{: id }` from `attr_list`. Such a heading,
++  and one with an empty `id`, now receives the auto-generated id like any other
++  heading.
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+   `<ssh://example.org>` (#1244).
+ * Fix quadratic-time id generation in the `toc` extension when many headers
+diff --git a/markdown/extensions/toc.py b/markdown/extensions/toc.py
+index ba65225..448626a 100644
+--- a/markdown/extensions/toc.py
++++ b/markdown/extensions/toc.py
+@@ -388,7 +388,8 @@ class TocTreeprocessor(Treeprocessor):
+         # Get a list of id attributes
+         used_ids = set()
+         for el in doc.iter():
+-            if "id" in el.attrib:
++            # A valueless (`None`) or empty id is not a usable id.
++            if el.get("id"):
+                 used_ids.add(el.attrib["id"])
+         id_counters: dict[str, int] = {}
+ 
+@@ -399,8 +400,8 @@ class TocTreeprocessor(Treeprocessor):
+                 innerhtml = render_inner_html(remove_fnrefs(el), self.md)
+                 name = strip_tags(innerhtml)
+ 
+-                # Do not override pre-existing ids
+-                if "id" not in el.attrib:
++                # Do not override pre-existing ids. A valueless (`None`) or empty id is treated as missing.
++                if not el.get("id"):
+                     el.attrib["id"] = unique(self.slugify(html.unescape(name), self.sep), used_ids, id_counters)
+ 
+                 data_toc_label = ''
+diff --git a/tests/test_syntax/extensions/test_toc.py b/tests/test_syntax/extensions/test_toc.py
+index 12a07d5..cf214e9 100644
+--- a/tests/test_syntax/extensions/test_toc.py
++++ b/tests/test_syntax/extensions/test_toc.py
+@@ -1085,6 +1085,64 @@ class TestTOC(TestCase):
+             extensions=['toc', 'attr_list']
+         )
+ 
++    def test_ac_fr_001_1_valueless_id_no_error(self):
++        """AC-FR-001-1: a heading with `{: id }` converts without an exception (issue #3)."""
++        import markdown
++        output = markdown.markdown('# Heading {: id }', extensions=['toc', 'attr_list'])
++        self.assertIsInstance(output, str)
++        self.assertIn('Heading', output)
++
++    def test_ac_fr_001_2_valueless_id_generated(self):
++        """AC-FR-001-2: a heading with `{: id }` gets the auto-generated id (issue #3)."""
++        self.assertMarkdownRenders(
++            '# Heading {: id }',
++            '<h1 id="heading">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )
++
++    def test_ac_fr_001_3_valueless_id_in_toc(self):
++        """AC-FR-001-3: a heading with `{: id }` appears in the table of contents (issue #3)."""
++        self.assertMarkdownRenders(
++            '# Heading {: id }',
++            '<h1 id="heading">Heading</h1>',
++            expected_attrs={
++                'toc': (
++                    '<div class="toc">\n'
++                    '<ul>\n'
++                    '<li><a href="#heading">Heading</a></li>\n'
++                    '</ul>\n'
++                    '</div>\n'
++                ),
++                'toc_tokens': [
++                    {
++                        'level': 1,
++                        'id': 'heading',
++                        'name': 'Heading',
++                        'html': 'Heading',
++                        'data-toc-label': '',
++                        'children': []
++                    }
++                ]
++            },
++            extensions=['toc', 'attr_list']
++        )
++
++    def test_ac_fr_002_1_explicit_id_preserved(self):
++        """AC-FR-002-1: an explicit id set with `{: id="intro" }` is kept unchanged (issue #3)."""
++        self.assertMarkdownRenders(
++            '# Heading {: id="intro" }',
++            '<h1 id="intro">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )
++
++    def test_ac_fr_003_1_empty_string_id_generated(self):
++        """AC-FR-003-1: a heading with `{: id="" }` gets the auto-generated id (issue #3)."""
++        self.assertMarkdownRenders(
++            '# Heading {: id="" }',
++            '<h1 id="heading">Heading</h1>',
++            extensions=['toc', 'attr_list']
++        )
++
+     def testAutoLinkEmail(self):
+         self.assertMarkdownRenders(
+             '## <foo@example.org>',

@@ -1,0 +1,224 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..b847004 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -16,6 +16,9 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ### Fixed
+ 
++* Reference-style links and images whose label is a code span, such as
++  `` [`code`] `` or `` [`code`][] ``, are now recognized when the reference is
++  defined with the same code span (`` [`code`]: /url ``).
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+   `<ssh://example.org>` (#1244).
+ * Fix quadratic-time id generation in the `toc` extension when many headers
+diff --git a/markdown/inlinepatterns.py b/markdown/inlinepatterns.py
+index 6f42bbf..521c123 100644
+--- a/markdown/inlinepatterns.py
++++ b/markdown/inlinepatterns.py
+@@ -1207,7 +1207,7 @@ class ReferenceInlineProcessor(LinkInlineProcessor):
+         if not handled:
+             return None, None, None
+ 
+-        id, end, handled = self.evalId(data, index, text)
++        id, end, handled = self.evalId(data, index, self.raw_label(text))
+         if not handled:
+             return None, None, None
+ 
+@@ -1220,6 +1220,23 @@ class ReferenceInlineProcessor(LinkInlineProcessor):
+ 
+         return self.makeTag(href, title, text), m.start(0), end
+ 
++    def raw_label(self, text: str) -> str:
++        """
++        Return the label `text` with code span placeholders replaced by their raw Markdown source.
++
++        Reference definitions are stored under their raw text, so the label must be
++        compared in the same form. Placeholders without a recorded source are left unchanged.
++        """
++        try:
++            source = self.md.treeprocessors['inline'].stashed_source
++        except KeyError:  # pragma: no cover
++            return text
++
++        def get_source(m):
++            return source.get(m.group(1), m.group(0))
++
++        return util.INLINE_PLACEHOLDER_RE.sub(get_source, text)
++
+     def evalId(self, data: str, index: int, text: str) -> tuple[str | None, int, bool]:
+         """
+         Evaluate the id portion of `[ref][id]`.
+diff --git a/markdown/treeprocessors.py b/markdown/treeprocessors.py
+index 63904b3..7522692 100644
+--- a/markdown/treeprocessors.py
++++ b/markdown/treeprocessors.py
+@@ -111,10 +111,12 @@ class InlineProcessor(Treeprocessor):
+         else:
+             return None, index + 1
+ 
+-    def __stashNode(self, node: etree.Element | str, type: str) -> str:
+-        """ Add node to stash. """
++    def __stashNode(self, node: etree.Element | str, type: str, source: str | None = None) -> str:
++        """ Add node to stash, optionally recording the raw Markdown `source` it was made from. """
+         placeholder, id = self.__makePlaceholder(type)
+         self.stashed_nodes[id] = node
++        if source is not None:
++            self.stashed_source[id] = source
+         return placeholder
+ 
+     def __handleInline(self, data: str, patternIndex: int = 0) -> str:
+@@ -320,7 +322,10 @@ class InlineProcessor(Treeprocessor):
+                                 child.tail, patternIndex
+                             )
+ 
+-        placeholder = self.__stashNode(node, pattern.type())
++        # Record the raw source of code spans so that reference labels containing
++        # a code span can be matched against the raw text of their definitions.
++        source = data[start:end] if new_style and isinstance(pattern, inlinepatterns.BacktickInlineProcessor) else None
++        placeholder = self.__stashNode(node, pattern.type(), source)
+ 
+         if new_style:
+             # Return the index just past the inserted placeholder so the
+@@ -364,6 +369,7 @@ class InlineProcessor(Treeprocessor):
+ 
+         """
+         self.stashed_nodes: dict[str, etree.Element | str] = {}
++        self.stashed_source: dict[str, str] = {}
+ 
+         # Ensure a valid parent list, but copy passed in lists
+         # to ensure we don't have the user accidentally change it on us.
+diff --git a/tests/test_syntax/inline/test_links.py b/tests/test_syntax/inline/test_links.py
+index e57bd99..3d1e720 100644
+--- a/tests/test_syntax/inline/test_links.py
++++ b/tests/test_syntax/inline/test_links.py
+@@ -19,6 +19,7 @@ Copyright 2004 Manfred Stienstra (the original version)
+ License: BSD (see LICENSE.md for details).
+ """
+ 
++import markdown
+ from markdown.test_tools import TestCase
+ 
+ 
+@@ -434,3 +435,121 @@ class TestReferenceLinks(TestCase):
+                 """
+             )
+         )
++
++    def test_ref_link_code_span_text(self):
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [`code`][ref]
++
++                [ref]: /url
++                """
++            ),
++            """<p><a href="/url"><code>code</code></a></p>"""
++        )
++
++    def test_ref_link_code_span_short(self):
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [`code`]
++
++                [`code`]: /url
++                """
++            ),
++            """<p><a href="/url"><code>code</code></a></p>"""
++        )
++
++    def test_ref_link_code_span_collapsed(self):
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [`code`][]
++
++                [`code`]: /url
++                """
++            ),
++            """<p><a href="/url"><code>code</code></a></p>"""
++        )
++
++    def test_ref_link_code_span_mixed_case(self):
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [`Code`]
++
++                [`code`]: /url
++                """
++            ),
++            """<p><a href="/url"><code>Code</code></a></p>"""
++        )
++
++    def test_ref_link_code_span_undefined(self):
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [`code`]
++
++                [code]: /url
++                """
++            ),
++            """<p>[<code>code</code>]</p>"""
++        )
++
++    def test_ref_link_with_code_span_text_preserved(self):
++        self.assertMarkdownRenders(
++            self.dedent(
++                """
++                [text][ref]
++
++                [ref]: /url
++                """
++            ),
++            """<p><a href="/url">text</a></p>"""
++        )
++
++    def test_inline_link_code_span_text(self):
++        self.assertMarkdownRenders(
++            "[`code`](/url)",
++            """<p><a href="/url"><code>code</code></a></p>"""
++        )
++
++    def test_inline_link_code_span_escaped(self):
++        self.assertMarkdownRenders(
++            "[`<b>x</b>`](/url)",
++            """<p><a href="/url"><code>&lt;b&gt;x&lt;/b&gt;</code></a></p>"""
++        )
++
++
++class TestCodeSpanLinkAcceptance(TestCase):
++    """Acceptance tests for links whose text contains a code span (issue #7)."""
++
++    def test_ac_fr_001_1_reference_code_span_label_becomes_link(self):
++        """`AC-FR-001-1`: a reference link with a code span label renders as a link."""
++
++        html = markdown.markdown('[`code`][ref]\n\n[ref]: /url')
++        self.assertIn('<a href="/url"><code>code</code></a>', html)
++
++    def test_ac_fr_001_2_short_reference_code_span_label_becomes_link(self):
++        """`AC-FR-001-2`: a short reference link with a code span label renders as a link."""
++
++        html = markdown.markdown('[`code`]\n\n[`code`]: /url')
++        self.assertIn('<a href="/url"><code>code</code></a>', html)
++
++    def test_ac_fr_002_1_inline_code_span_text_still_links(self):
++        """`AC-FR-002-1`: an inline link with a code span in its text still renders as a link."""
++
++        html = markdown.markdown('[`code`](/url)')
++        self.assertIn('<a href="/url"><code>code</code></a>', html)
++
++    def test_ac_fr_002_2_reference_plain_text_still_links(self):
++        """`AC-FR-002-2`: a reference link with plain text still renders as a link."""
++
++        html = markdown.markdown('[text][ref]\n\n[ref]: /url')
++        self.assertIn('<a href="/url">text</a>', html)
++
++    def test_ac_nfr_001_1_code_span_in_link_text_is_escaped(self):
++        """`AC-NFR-001-1`: HTML in a code span inside link text is escaped."""
++
++        html = markdown.markdown('[`<b>x</b>`](/url)')
++        self.assertIn('<code>&lt;b&gt;x&lt;/b&gt;</code>', html)

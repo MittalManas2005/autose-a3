@@ -1,0 +1,6 @@
+# Independent reviewer findings (address every item)
+
+The notoc exclusion itself works, but the PR also changes how ids set with attr_list are emitted, which the issue did not ask for, and it deletes an existing test that this change broke.
+
+- [blocker] markdown/extensions/toc.py:405 The new else branch slugifies ids set explicitly with attr_list. This is an unrelated behaviour change to heading ids and breaks backward compatibility. The issue says headings with other classes must behave exactly as today and that existing links must keep working. — evidence: Input `# One { id="My_Id" }` now renders `<h1 id="my_id">`, and `{: id="A B" }` renders `id="a-b"`. Before the change, explicit ids were preserved as written.
+- [major] tests/test_syntax/extensions/test_toc.py:73 The existing test test_escaped_char_in_attr_list was deleted. It had been passing before the PR and the new id-slugify code would make it fail, so removing it hides the regression. — evidence: The diff removes the test, which asserted `{ id="\*Foo\*" }` yields `id="*Foo*"` and a matching TOC entry.

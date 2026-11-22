@@ -1,0 +1,56 @@
+[
+  {
+    "command": "python -c \"import markdown,inspect; print(inspect.signature(markdown.Markdown.__init__))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(self, **kwargs)"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1168 tests in 1.652s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_apis",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...........................................................................................\n----------------------------------------------------------------------\nRan 91 tests in 0.038s\n\nOK"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('- a\\n\\n    - b\\n')))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<ul>\\n<li>\\n<p>a</p>\\n<ul>\\n<li>b</li>\\n</ul>\\n</li>\\n</ul>'"
+  },
+  {
+    "command": "python -c \"import sys; from markdown.__main__ import parse_options; print(parse_options([])[0]['tab_length'])\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "2"
+  },
+  {
+    "command": "python -m markdown -- ./dummy 2>/dev/null; python -c \"import markdown; print(markdown.markdown('- a\\n\\n    - b\\n', tab_length=2))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: python -m markdown -- ./dummy"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('- a\\n\\n    - b\\n'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<ul>\n<li>\n<p>a</p>\n<ul>\n<li>b</li>\n</ul>\n</li>\n</ul>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('- a\\n\\n    - b\\n', tab_length=2))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<ul>\n<li>a<pre><code>- b\n</code></pre>\n</li>\n</ul>"
+  },
+  {
+    "command": "python -c \"import markdown.__main__ as m; o,_=m.parse_options(['--tab_length','2']); print(o['tab_length']); import markdown; print(markdown.markdown('- a\\n\\n  - b\\n', tab_length=o['tab_length']))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "2\n<ul>\n<li>\n<p>a</p>\n<ul>\n<li>b</li>\n</ul>\n</li>\n</ul>"
+  }
+]

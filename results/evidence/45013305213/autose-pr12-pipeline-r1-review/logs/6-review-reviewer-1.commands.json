@@ -1,0 +1,56 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1179 tests in 1.197s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('![`code`][ref]\\n\\n[ref]: /img.png'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: code"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[a `b` c]\\n\\n[a `b` c]: /u\\n\\n[*x* `y`]\\n\\n[*x* `y`]: /v\\n\\n[`a` `b`][]\\n\\n[`a` `b`]: /w\\n\\n[``a``]\\n\\n[``a``]: /z\\n\\n[`a`]\\n\\n[`a`]: /q'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "empty backtick substitution \u2014 bash joins the surrounding words, so the parsed command boundaries cannot be trusted"
+  },
+  {
+    "command": "python -m flake8 markdown/treeprocessors.py markdown/inlinepatterns.py tests/test_syntax/inline/test_links.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`code`]\\n\\n[`code`]: /url\\n\\n[`code`][]\\n\\n[`code`]: /url2', extensions=['attr_list']))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: code"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"![`code`][ref]\\n\\n[ref]: /img.png\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><img alt=\"code\" src=\"/img.png\" /></p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[a `b` c]\\n\\n[a `b` c]: /u\\n\\n[*x* `y`]\\n\\n[*x* `y`]: /v\\n\\n[`a` `b`][]\\n\\n[`a` `b`]: /w\\n\\n[``a``]\\n\\n[``a``]: /z\\n\\n[`a`]\\n\\n[`a`]: /q\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"/u\">a <code>b</code> c</a></p>\n<p><a href=\"/v\"><em>x</em> <code>y</code></a></p>\n<p><a href=\"/w\"><code>a</code> <code>b</code></a></p>\n<p><a href=\"/z\"><code>a</code></a></p>\n<p><a href=\"/q\"><code>a</code></a></p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[`code`]\\n\\n[`code`]: /url\\n\\n[`x`]: /nothere\\n\\n[`Y` text][ref]\\n\\n[ref]: /r\", extensions=[\"attr_list\"]))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"/url\"><code>code</code></a></p>\n<p><a href=\"/r\"><code>Y</code> text</a></p>"
+  },
+  {
+    "command": "python -c 'import markdown; print(markdown.markdown(\"[`a]b`]\\n\\n[`a]b`]: /u\\n\\n[`<b>`][]\\n\\n[`<b>`]: /v \\\"t\\\"\\n\\n[`x`\\\\]\\n\\n[`x`\\\\]: /esc\\n\\n[`x`]: <javascript:alert(1)>\"))'",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>[<code>a]b</code>]</p>\n<p>[<code>a]b</code>]: /u</p>\n<p><a href=\"/v\" title=\"t\"><code>&lt;b&gt;</code></a></p>\n<p>[<code>x</code>]</p>"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "role": "requirements",
+    "stage": "1-requirements",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 25211,
+    "cache_read_input_tokens": 346623,
+    "output_tokens": 10727,
+    "cost_usd_list_price": 0.013873729999999999,
+    "num_turns": 13,
+    "duration_s": 57.4,
+    "permission_denials": 0
+  }
+]

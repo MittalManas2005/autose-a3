@@ -1,0 +1,50 @@
+[
+  {
+    "command": "python -m compileall -q markdown",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_apis",
+    "denied": false,
+    "ok": false,
+    "output_tail": "ceback (most recent call last):\n  File \"/home/runner/work/markdown/markdown/tests/test_apis.py\", line 1084, in testNoTabLengthUnchanged\n    self.assertIn('<li>b</li>', result.stdout)\nAssertionError: '<li>b</li>' not found in '<ul>\\n<li>\\n<p>a</p>\\n</li>\\n<li>\\n<p>b</p>\\n</li>\\n</ul>'\n\n----------------------------------------------------------------------\nRan 98 tests in 0.625s\n\nFAILED (failures=1)"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_apis",
+    "denied": false,
+    "ok": true,
+    "output_tail": "..................................................................................................\n----------------------------------------------------------------------\nRan 98 tests in 0.627s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m markdown --help",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -m unittest -v tests.test_apis.TestCliTabLength.testMarkdownPyMatchesModule",
+    "denied": false,
+    "ok": true,
+    "output_tail": "testMarkdownPyMatchesModule (tests.test_apis.TestCliTabLength.testMarkdownPyMatchesModule) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.144s\n\nOK"
+  },
+  {
+    "command": "python -c \"import markdown; [print(n, repr(markdown.markdown('- a\\n\\n  - b\\n', tab_length=n))) for n in (0, -1)]\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "verdict": "request_changes",
+  "target_stage": "implementation",
+  "summary": "The --tab_length option is wired up, but its CLI default is 2 instead of the library default of 4. Any CLI run that omits the option now renders differently from before, which the issue explicitly forbids. The new tests encode the wrong default, so they do not catch it.",
+  "verified": [
+    "python -m unittest discover tests (run by me): Ran 1168 tests, OK (skipped=52)",
+    "python -m unittest tests.test_apis (run by me): Ran 91 tests, OK",
+    "Library default tab_length is 4 (markdown/core.py:110, kwargs.get('tab_length', 4))",
+    "parse_options([]) returns tab_length=2 (markdown/__main__.py:69)",
+    "Without the option, markdown.markdown('- a\\n\\n    - b\\n') renders a nested <ul> (library default 4); with tab_length=2 the same input renders '- b' as a <pre><code> block inside <li>a, so omitting the option changes output",
+    "parse_options(['--tab_length','2']) passes tab_length=2 and the issue's 2-space example nests correctly",
+    "Changelog entry present under Unreleased/Added; no CI files touched; -t short flag does not clash with existing options",
+    "flake8 not run"
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "file": "markdown/__main__.py",
+      "line": 69,
+      "issue": "The --tab_length option defaults to 2, not the library default of 4. Any CLI run without the option now uses tab_length=2, so existing output changes. The issue requires output to be unchanged when the option is absent.",
+      "evidence": "markdown/core.py:110 uses kwargs.get('tab_length', 4). With the PR, parse_options([]) returns tab_length=2. Input '- a\\n\\n    - b\\n' with no option renders at HEAD as a nested <ul> (library default 4). With tab_length=2 it renders as <li>a<pre><code>- b, a changed result for input that never used the option."
+    },
+    {
+      "severity": "major",
+      "file": "tests/test_apis.py",
+      "line": 800,
+      "issue": "The test fixture default and testNoOptions were changed to expect 'tab_length': 2. This locks in the regression, and no test checks that omitting the option matches the library default of 4.",
+      "evidence": "The diff adds 'tab_length': 2 to default_options in TestCliOptionParsing. testNoOptions asserts parse_options([]) equals that dict, so it passes only because the wrong default is in the test too."
+    }
+  ]
+}

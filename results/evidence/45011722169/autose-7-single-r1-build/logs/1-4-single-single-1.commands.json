@@ -1,0 +1,32 @@
+[
+  {
+    "command": "python -m unittest tests.scratch_probe_issue7",
+    "denied": false,
+    "ok": false,
+    "output_tail": "/code></a></p>'\n'[`a[b`](http://x)' => '<p><a href=\"http://x\"><code>a[b</code></a></p>'\n'[`a`](http://x`y)' => '<p><a href=\"http://x`y\"><code>a</code></a></p>'\n'- [`code`](http://x)' => '<ul>\\n<li><a href=\"http://x\"><code>code</code></a></li>\\n</ul>'\n'[`code`](http://x)`' => '<p><a href=\"http://x\"><code>code</code></a>`</p>'\n'[``a`b``](http://x)' => '<p><a href=\"http://x\"><code>a`b</code></a></p>'"
+  },
+  {
+    "command": "rm /home/runner/work/markdown/markdown/tests/scratch_probe_issue7.py",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.inline.test_links",
+    "denied": false,
+    "ok": true,
+    "output_tail": "............................................\n----------------------------------------------------------------------\nRan 44 tests in 0.013s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown/inlinepatterns.py tests/test_syntax/inline/test_links.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1170 tests in 1.359s\n\nOK (skipped=52)"
+  }
+]

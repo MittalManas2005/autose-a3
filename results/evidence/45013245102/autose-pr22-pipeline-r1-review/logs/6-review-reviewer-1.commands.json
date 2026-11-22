@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -c \"import subprocess;print(subprocess.run(['python','-m','markdown'],input='- a\\n\\n    - b\\n',capture_output=True,text=True).stdout)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<ul>\n<li>a<pre><code>- b\n</code></pre>\n</li>\n</ul>"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1168 tests in 1.207s\n\nOK (skipped=52)"
+  }
+]

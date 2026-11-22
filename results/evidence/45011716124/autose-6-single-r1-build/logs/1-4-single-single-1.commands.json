@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m unittest tests.test_cli_tab_length -v",
+    "denied": false,
+    "ok": true,
+    "output_tail": "hout the option the CLI output equals the default `markdown.markdown()` output. ... ok\ntest_asm_001_non_integer_value_is_rejected (tests.test_cli_tab_length.TestCliTabLength.test_asm_001_non_integer_value_is_rejected)\nASM-001: A non-integer `--tab_length` value is rejected by the option parser. ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.097s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown/__main__.py tests/test_cli_tab_length.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1172 tests in 1.203s\n\nOK (skipped=52)"
+  }
+]

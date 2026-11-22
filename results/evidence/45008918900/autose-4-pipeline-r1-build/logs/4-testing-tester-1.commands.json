@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_fenced_code_codehilite_only_options -v",
+    "denied": false,
+    "ok": true,
+    "output_tail": "fr_003_1_codehilite_linenums_does_not_raise (tests.test_syntax.extensions.test_fenced_code_codehilite_only_options.TestIssue4WithCodehilite.test_ac_fr_003_1_codehilite_linenums_does_not_raise)\nAC-FR-003-1: with `codehilite` enabled, `linenums` renders without an exception and non-empty output. ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 0.028s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 tests/test_syntax/extensions/test_fenced_code_codehilite_only_options.py",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  }
+]

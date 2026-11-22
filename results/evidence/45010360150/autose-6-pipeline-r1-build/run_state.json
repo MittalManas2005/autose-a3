@@ -1,0 +1,104 @@
+{
+  "created": "2026-11-22T10:01:56Z",
+  "transitions": [
+    {
+      "at": "2026-11-22T10:03:10Z",
+      "from": "requirements",
+      "to": "design",
+      "reason": "spec check passed"
+    },
+    {
+      "at": "2026-11-22T10:04:21Z",
+      "from": "design",
+      "to": "implementation",
+      "reason": "design check passed"
+    },
+    {
+      "at": "2026-11-22T10:05:10Z",
+      "from": "implementation",
+      "to": "testing",
+      "reason": "build check passed"
+    },
+    {
+      "at": "2026-11-22T10:06:03Z",
+      "from": "testing",
+      "to": "testing",
+      "reason": "spelling: tester retries"
+    },
+    {
+      "at": "2026-11-22T10:06:33Z",
+      "from": "testing",
+      "to": "release",
+      "reason": "all new and existing tests pass"
+    }
+  ],
+  "checks": [
+    {
+      "at": "2026-11-22T10:03:10Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:04:21Z",
+      "stage": 2,
+      "check": "design names files and functions",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:05:10Z",
+      "stage": 3,
+      "check": "code builds (guard + compile + flake8)",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T10:06:03Z",
+      "stage": 4,
+      "check": "new and existing tests pass",
+      "ok": false,
+      "reasons": [
+        "tests/test_apis.py: new words rejected by the repository's spell check (CI job `checkspelling`): STDIN. CI spell-checks docstrings, comments and documentation: put identifiers, code and IDs in backticks, or use plain English words.",
+        "tests/test_cli_tab_length_ac.py: new words rejected by the repository's spell check (CI job `checkspelling`): syntaxes. CI spell-checks docstrings, comments and documentation: put identifiers, code and IDs in backticks, or use plain English words."
+      ]
+    },
+    {
+      "at": "2026-11-22T10:06:33Z",
+      "stage": 4,
+      "check": "new and existing tests pass",
+      "ok": true,
+      "reasons": []
+    }
+  ],
+  "status": "ready",
+  "issue": "6",
+  "round": 1,
+  "variant": "pipeline",
+  "base_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_sha": "ca2d6d37ae9baf0a946edded6815015f722ee57c",
+  "start_stage": "requirements",
+  "base_tests": 1166,
+  "ac_ids": [
+    "AC-FR-001-1",
+    "AC-FR-001-2",
+    "AC-FR-002-1",
+    "AC-FR-002-2",
+    "AC-FR-003-1",
+    "AC-FR-004-1",
+    "AC-FR-004-2",
+    "AC-FR-005-1"
+  ],
+  "inferred_ac_ids": [
+    "AC-FR-001-1",
+    "AC-FR-001-2",
+    "AC-FR-002-1",
+    "AC-FR-002-2",
+    "AC-FR-003-1",
+    "AC-FR-004-1",
+    "AC-FR-004-2",
+    "AC-FR-005-1"
+  ],
+  "finished": true
+}

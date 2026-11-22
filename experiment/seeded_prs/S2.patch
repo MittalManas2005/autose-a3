@@ -1,0 +1,82 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..84cae94 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -16,6 +16,9 @@ See the [Contributing Guide](contributing.md) for details.
+ 
+ ### Fixed
+ 
++* Fix a crash in `fenced_code` with `attr_list` when a block sets a boolean
++  option such as `linenums` without `codehilite`. The option is now written to
++  the `<code>` element like other attributes.
+ * Support automatic links with URL schemes other than HTTP and FTP, such as
+   `<ssh://example.org>` (#1244).
+ * Fix quadratic-time id generation in the `toc` extension when many headers
+diff --git a/markdown/extensions/fenced_code.py b/markdown/extensions/fenced_code.py
+index 6e2ed6b..664a3eb 100644
+--- a/markdown/extensions/fenced_code.py
++++ b/markdown/extensions/fenced_code.py
+@@ -156,8 +156,10 @@ class FencedBlockPreprocessor(Preprocessor):
+                         # Only assign key/value pairs to code element if `attr_list` extension is enabled, key/value
+                         # pairs were defined on the code block, and the `use_pygments` key was not set to `True`. The
+                         # `use_pygments` key could be either set to `False` or not defined. It is omitted from output.
++                        # Boolean options are parsed to `True`, `False` or `None` (valueless). Serialize them as
++                        # strings so that they can be written as attributes; a valueless option means "on".
+                         kv_pairs = ''.join(
+-                            f' {sanitize_name(k)}="{_escape_attrib_html(v)}"'
++                            f' {sanitize_name(k)}="{_escape_attrib_html(str(True if v is None else v))}"'
+                             for k, v in config.items() if k != 'use_pygments'
+                         )
+                     code = self._escape(m.group('code'))
+diff --git a/tests/test_syntax/extensions/test_fenced_code_bool_options.py b/tests/test_syntax/extensions/test_fenced_code_bool_options.py
+new file mode 100644
+index 0000000..b7b59f3
+--- /dev/null
++++ b/tests/test_syntax/extensions/test_fenced_code_bool_options.py
+@@ -0,0 +1,46 @@
++"""
++Python Markdown
++
++A Python implementation of John Gruber's Markdown.
++
++Documentation: https://python-markdown.github.io/
++GitHub: https://github.com/Python-Markdown/markdown/
++PyPI: https://pypi.org/project/Markdown/
++
++Started by Manfred Stienstra (http://www.dwerg.net/).
++Maintained for a few years by Yuri Takhteyev (http://www.freewisdom.org).
++Currently maintained by Waylan Limberg (https://github.com/waylan),
++Dmitry Shachnev (https://github.com/mitya57) and Isaac Muse (https://github.com/facelessuser).
++
++Copyright 2007-2023 The Python Markdown Project (v. 1.7 and later)
++Copyright 2004, 2005, 2006 Yuri Takhteyev (v. 0.2-1.6b)
++Copyright 2004 Manfred Stienstra (the original version)
++
++License: BSD (see LICENSE.md for details).
++"""
++
++from markdown.test_tools import TestCase
++
++
++class TestFencedCodeBoolOptions(TestCase):
++
++    def test_valueless_linenums_does_not_crash(self):
++        self.assertMarkdownRenders(
++            '``` { .python linenums }\nprint(1)\n```',
++            '<pre><code class="language-python" linenums="True">print(1)\n</code></pre>',
++            extensions=['fenced_code', 'attr_list']
++        )
++
++    def test_linenums_true_does_not_crash(self):
++        self.assertMarkdownRenders(
++            '``` { .python linenums=true }\nprint(1)\n```',
++            '<pre><code class="language-python" linenums="True">print(1)\n</code></pre>',
++            extensions=['fenced_code', 'attr_list']
++        )
++
++    def test_other_attributes_kept(self):
++        self.assertMarkdownRenders(
++            '``` { .python data-x="y" }\nprint(1)\n```',
++            '<pre><code class="language-python" data-x="y">print(1)\n</code></pre>',
++            extensions=['fenced_code', 'attr_list']
++        )

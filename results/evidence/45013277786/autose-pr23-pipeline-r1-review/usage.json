@@ -1,0 +1,20 @@
+[
+  {
+    "role": "reviewer",
+    "stage": "6-review",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 20847,
+    "cache_read_input_tokens": 249154,
+    "output_tokens": 7927,
+    "cost_usd_list_price": 0.01062624,
+    "num_turns": 27,
+    "duration_s": 35.2,
+    "permission_denials": 6
+  }
+]

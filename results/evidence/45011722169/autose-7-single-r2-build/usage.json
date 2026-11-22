@@ -1,0 +1,20 @@
+[
+  {
+    "role": "single",
+    "stage": "1-4-single",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 54995,
+    "cache_read_input_tokens": 547734,
+    "output_tokens": 6645,
+    "cost_usd_list_price": 0.01980064,
+    "num_turns": 19,
+    "duration_s": 33.0,
+    "permission_denials": 0
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "verdict": "approve",
+  "target_stage": "none",
+  "summary": "The fix treats a valueless or empty `id` as no id in the `toc` treeprocessor. The full suite passes, flake8 is clean, and my probes behave as the issue expects. The only drawback is some redundant tests.",
+  "verified": [
+    "`python -m unittest discover tests` passed: 1179 tests, OK, 52 skipped",
+    "`python -m flake8` on toc.py and test_toc.py reported nothing",
+    "`# Heading {: id }` with `toc` and `attr_list` no longer crashes. It gets a generated id and appears in the TOC.",
+    "Mixed probe with duplicate headings, `id=\"\"`, valueless `id` and an explicit id: ids are unique, and the explicit id is reserved and kept.",
+    "Permalink and anchorlink options work with a valueless-id heading.",
+    "`attr_list` alone still renders `<h1 id>`, and an explicit `id=\"intro\"` is kept.",
+    "The changelog entry is present, and only toc.py, tests and docs changed."
+  ],
+  "findings": [
+    {
+      "severity": "minor",
+      "file": "tests/test_syntax/extensions/test_toc.py",
+      "line": 1538,
+      "issue": "The new class `TestTOCValuelessIdAcceptance` largely duplicates the tests added to `TestTOC`.",
+      "evidence": "For example, `test_ac_fr_002_1` and `test_valueless_id_heading` assert the same output."
+    }
+  ]
+}

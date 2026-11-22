@@ -1,0 +1,22 @@
+{
+  "verdict": "approve",
+  "target_stage": "none",
+  "summary": "The PR fixes reference links and images whose label is a code span by matching the label against the raw source of the definition. Tests and flake8 pass, and my probes matched the expected behaviour.",
+  "verified": [
+    "`python -m unittest discover tests` passes: 1179 tests, OK, 52 skipped.",
+    "`python -m flake8` on markdown/ and the changed test file reports nothing.",
+    "`[`code`]` and `[`code`][]` with a matching `[`code`]: /url` definition render as links. The test in the diff covers case-insensitive matching.",
+    "Multi-backtick spans, spans inside a longer label such as `[a `x` b][]`, image references `![`img`][]`, and links nested in list items, emphasis and blockquotes all render correctly.",
+    "A span containing `<b>` stays escaped in the output.",
+    "Plain-text reference links and inline links with code spans are unchanged, and the changelog entry is present."
+  ],
+  "findings": [
+    {
+      "severity": "minor",
+      "file": "markdown/inlinepatterns.py",
+      "line": 1223,
+      "issue": "`raw_label` reads `self.md.treeprocessors['inline'].stashed_source`, so it depends on the inline treeprocessor having that attribute. The `KeyError` fallback is marked `# pragma: no cover`, but an `AttributeError` is not handled.",
+      "evidence": "Code inspection only. The attribute is set in `InlineProcessor.run` before patterns run, and I found no failing input."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "created": "2026-11-22T09:44:28Z",
+  "transitions": [],
+  "checks": [
+    {
+      "at": "2026-11-22T09:45:49Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": false,
+      "reasons": [
+        "AC-FR-004-1: not written as 'ID [label] (oracle): Given ... when ... then ...'"
+      ]
+    }
+  ],
+  "status": "failed",
+  "issue": "5",
+  "round": 1,
+  "variant": "pipeline",
+  "base_sha": "758ab062032e4096fc14a4bb219015e83820c890",
+  "start_sha": "758ab062032e4096fc14a4bb219015e83820c890",
+  "start_stage": "requirements",
+  "base_tests": 1166,
+  "stop_stage": 1,
+  "stop_reason": "AC-FR-004-1: not written as 'ID [label] (oracle): Given ... when ... then ...'",
+  "finished": true
+}
