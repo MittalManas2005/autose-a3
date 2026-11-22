@@ -44,6 +44,16 @@ class TestSpecCheck(unittest.TestCase):
         self.assertFalse(chk.ok)
         self.assertIn("AC-FR-001-2", chk.reasons[0])
 
+    def test_preservation_marker_accepted(self):
+        # Run 45008926010 wrote "(contains, preservation)"; the prompt now asks for "(contains) (preservation)".
+        for form in ("(contains, preservation)", "(contains) (preservation)", "(contains)(preservation)"):
+            chk = checks.check_spec(SPEC_OK.replace("[Inferred] (contains)", f"[Inferred] {form}"))
+            self.assertTrue(chk.ok, (form, chk.reasons))
+
+    def test_preservation_without_oracle_fails(self):
+        chk = checks.check_spec(SPEC_OK.replace("[Inferred] (contains)", "[Inferred] (preservation)"))
+        self.assertFalse(chk.ok)
+
     def test_missing_given_when_then_fails(self):
         chk = checks.check_spec(SPEC_OK.replace("when converted, then no exception", "no exception"))
         self.assertFalse(chk.ok)
