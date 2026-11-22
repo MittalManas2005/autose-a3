@@ -16,6 +16,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+import unittest.mock
 from pathlib import Path
 
 PIN = "3f2c5510bd8d64a73ec18342f740371bcde9b20c"
@@ -176,6 +177,33 @@ class TestFlow(unittest.TestCase):
         state, _ = self.run_build("guard_violation")
         self.assertEqual(state["status"], "failed")
         self.assertIn(".github", json.dumps(state["checks"]))
+
+
+@unittest.skipUnless(CLONE and shutil.which("aspell"), "needs AUTOSE_TEST_CLONE, aspell and pyspelling")
+class TestSpellingCheck(unittest.TestCase):
+    """The stage 3/4 spell check reproduces CI's `checkspelling` failure from baseline run 45008881976."""
+
+    def test_new_misspelling_in_test_docstring_is_reported(self):
+        sys.path.insert(0, str(AUTOSE_PKG.parent))
+        from autose import checks
+        wt = Path(tempfile.mkdtemp(prefix="autose-spell-")) / "fork"
+        subprocess.run(["git", "worktree", "add", "--detach", str(wt), PIN], cwd=CLONE, check=True, capture_output=True)
+        self.addCleanup(subprocess.run, ["git", "worktree", "remove", "--force", str(wt)], cwd=CLONE,
+                        capture_output=True)
+        test_file = wt / "tests" / "test_autose_spelling.py"
+        env_path = f"{Path(sys.executable).parent}{os.pathsep}{os.environ['PATH']}"
+        with unittest.mock.patch.dict(os.environ, {"PATH": env_path}):
+            if not checks.spelling_available(wt):
+                self.skipTest("pyspelling not importable by `python`")
+            test_file.write_text('def test_a():\n    """Given ["toc", "attr_list"] the attr is kept."""\n')
+            bad = checks.check_spelling(wt, PIN, ["tests/test_autose_spelling.py"])
+            test_file.write_text('def test_a():\n    """Given `["toc", "attr_list"]` the `attr` is kept."""\n')
+            good = checks.check_spelling(wt, PIN, ["tests/test_autose_spelling.py"])
+            unchanged = checks.check_spelling(wt, PIN, ["docs/changelog.md"])  # words already in `main` don't count
+        self.assertFalse(bad.ok)
+        self.assertIn("attr", bad.data["misspelled"]["tests/test_autose_spelling.py"])
+        self.assertTrue(good.ok, good.reasons)
+        self.assertTrue(unchanged.ok, unchanged.reasons)
 
 
 if __name__ == "__main__":
