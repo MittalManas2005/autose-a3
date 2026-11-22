@@ -110,7 +110,8 @@ class TestFlow(unittest.TestCase):
         fake.write_text(f"#!{sys.executable}\n" + (HERE / "fake_claude.py").read_text())
         fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
 
-    def run_build(self, scenario: str, **extra: str) -> tuple[dict, Path]:
+    def run_build(self, scenario: str, rnd: int = 1, variant: str = "pipeline", start: str = "requirements",
+                  prep=None, **extra: str) -> tuple[dict, Path]:
         wt = Path(tempfile.mkdtemp(prefix="autose-wt-")) / "fork"
         subprocess.run(["git", "worktree", "add", "--detach", str(wt), PIN], cwd=CLONE, check=True,
                        capture_output=True)
@@ -123,14 +124,16 @@ class TestFlow(unittest.TestCase):
             subprocess.run(cmd, cwd=wt, check=True, capture_output=True)
         base = subprocess.run(["git", "rev-parse", "HEAD"], cwd=wt, text=True, capture_output=True).stdout.strip()
         (wt / ".autose_out").mkdir()
+        if prep:
+            prep(wt)
         (wt / ".autose_out" / "issue.json").write_text(json.dumps(
             {"number": 1, "title": "TOC crashes on {: id }", "body": "crash", "author": {"login": "u"}}))
         env = dict(os.environ, PATH=f"{self.bin}{os.pathsep}{Path(sys.executable).parent}{os.pathsep}"
                                     f"{os.environ['PATH']}",
                    FAKE_FIXTURES=str(self.fixtures), FAKE_SCENARIO=scenario,
                    CLAUDE_CONFIG_DIR=tempfile.mkdtemp(prefix="autose-claude-"), **extra)
-        proc = subprocess.run([sys.executable, "-m", "autose.orchestrator", "--issue", "1", "--round", "1",
-                               "--start-stage", "requirements", "--base-sha", base], cwd=wt, env=env,
+        proc = subprocess.run([sys.executable, "-m", "autose.orchestrator", "--issue", "1", "--round", str(rnd),
+                               "--start-stage", start, "--base-sha", base, "--variant", variant], cwd=wt, env=env,
                               text=True, capture_output=True, timeout=900)
         self.assertEqual(proc.returncode, 0, proc.stdout[-3000:] + proc.stderr[-3000:])
         state = json.loads((wt / ".autose_out" / "run_state.json").read_text())
@@ -172,6 +175,25 @@ class TestFlow(unittest.TestCase):
         self.assertIn("not a code defect", state["stop_reason"])
         self.assertEqual((wt / ".autose_out" / ".fake_implementer_calls").read_text(), "1")  # no retries
         self.assertTrue((wt / ".autose_out" / "logs" / "3-implementation-implementer-1.transcript.jsonl").exists())
+
+    def test_rework_round_without_changes_stops_cleanly(self):
+        # E1 run 45011722169: round 2 changed nothing, passed every check and only failed at release.
+        def prep(wt: Path) -> None:
+            subprocess.run(["git", "apply", str(self.fixtures / "fix_code_only.patch")], cwd=wt, check=True)
+            cl = wt / "docs" / "changelog.md"
+            cl.write_text(cl.read_text().replace("### Fixed\n\n", "### Fixed\n\n* Fix `toc` crash.\n", 1))
+            (wt / "tests" / "test_syntax" / "extensions" / "test_autose_issue.py").write_text(TESTS_GOOD)
+            for cmd in (["git", "add", "-A", "--", "markdown", "docs", "tests"],
+                        ["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "round 1"]):
+                subprocess.run(cmd, cwd=wt, check=True, capture_output=True)
+            out = wt / ".autose_out"
+            (out / "spec.md").write_text(SPEC)
+            (out / "design.md").write_text(DESIGN)
+            (out / "review_findings.md").write_text("# Findings\n- [major] tests/x.py: leftover file\n")
+
+        state, wt = self.run_build("happy", rnd=2, variant="single", start="implementation", prep=prep)
+        self.assertEqual((state["status"], state["stop_stage"]), ("failed", 3))
+        self.assertIn("rework round made no change", state["stop_reason"])
 
     def test_guard_violation_stops_the_run(self):
         state, _ = self.run_build("guard_violation")
