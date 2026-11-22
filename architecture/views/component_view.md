@@ -28,7 +28,7 @@ flowchart TB
     end
     REL["Job release (per round)<br/>deterministic, no LLM<br/>GitHub App token: contents + pull-requests write"]
     REV["Job review (per round)<br/>fresh runner · contents: read, pull-requests: write<br/>(GITHUB_TOKEN = github-actions bot)"]
-    REVA["Reviewer agent<br/>Sonnet · Read/Grep/Glob · Bash: unittest<br/>sees issue + diff + PR head only"]
+    REVA["Reviewer agent<br/>Sonnet · Read/Grep/Glob · Bash: unittest, flake8, python -c<br/>sees issue + diff + PR head only"]
     REPORT["Job report<br/>issues: write · status comment"]
   end
 
@@ -64,11 +64,12 @@ flowchart TB
 | Checks | deterministic | Python | spec parser, design validator (AST), diff guard, build + flake8, `unittest` runner (clean environment), AC-coverage, fail-on-base | pass/fail + reasons into the stage artifacts |
 | Release job | deterministic | bash + `gh` + GitHub App token | `contents: write`, `pull-requests: write` (App installation token, 1 h lifetime) | branch `autose/issue-N`, PR, `pr.md`, CI result |
 | Review job | deterministic shell + LLM | — | `contents: read`, `pull-requests: write` via `GITHUB_TOKEN` | posts the review |
-| Reviewer agent | LLM | Claude Sonnet, effort medium | Read, Grep, Glob; Bash limited to test commands; no edits, no git, no `gh` | `review.md`, `verdict.json` |
+| Reviewer agent | LLM | Claude Sonnet, effort medium | Read, Grep, Glob; Bash limited to `python -m unittest`, `python -m flake8`, `python -c`; no edits, no git, no `gh` | `review.md`, `verdict.json`, session transcript |
 | Report job | deterministic | `gh` | `issues: write` | one status comment on the issue with links and the run ID |
 | Upstream CI | existing workflows in the fork | — | unchanged upstream configuration | check runs on the PR head commit |
 
 ## Interactions that are deliberately absent
-- No agent receives a GitHub token with write access. All GitHub writes happen in deterministic steps (ADR-005, ADR-009).
-- The review job never downloads build artifacts (`spec.md`, `design.md`, `test_report.md`) and never reads the PR description (ADR-003, ADR-008).
-- No agent has web access, and no token in the fork can read `autose-a3`, where the hidden tests live (ADR-009).
+- No agent receives a GitHub token with write access. All GitHub writes happen in deterministic steps (ADR-005, ADR-012).
+- The review job never downloads build artifacts (`spec.md`, `design.md`, `test_report.md`) and never reads the PR description (ADR-003, ADR-013).
+- No agent has web access, and no token in the fork can read `autose-a3`, where the hidden tests live (ADR-012).
+- Commands an agent runs (tests, `python -c` probes) get no Claude credentials: Claude Code removes them from their environment (`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`, ADR-012). Each agent's session transcript is kept in its job's artifact.
