@@ -126,7 +126,8 @@ class TestFlow(unittest.TestCase):
             {"number": 1, "title": "TOC crashes on {: id }", "body": "crash", "author": {"login": "u"}}))
         env = dict(os.environ, PATH=f"{self.bin}{os.pathsep}{Path(sys.executable).parent}{os.pathsep}"
                                     f"{os.environ['PATH']}",
-                   FAKE_FIXTURES=str(self.fixtures), FAKE_SCENARIO=scenario, **extra)
+                   FAKE_FIXTURES=str(self.fixtures), FAKE_SCENARIO=scenario,
+                   CLAUDE_CONFIG_DIR=tempfile.mkdtemp(prefix="autose-claude-"), **extra)
         proc = subprocess.run([sys.executable, "-m", "autose.orchestrator", "--issue", "1", "--round", "1",
                                "--start-stage", "requirements", "--base-sha", base], cwd=wt, env=env,
                               text=True, capture_output=True, timeout=900)
@@ -162,6 +163,14 @@ class TestFlow(unittest.TestCase):
         self.assertEqual(state["status"], "needs_input")
         self.assertEqual(state["stop_stage"], 1)
         self.assertTrue((wt / ".autose_out" / "STOPPED.md").exists())
+
+    def test_broken_sandbox_stops_at_once_with_environment_reason(self):
+        state, wt = self.run_build("sandbox_broken")
+        self.assertEqual((state["status"], state["stop_stage"]), ("failed", 3))
+        self.assertIn("sandbox is unavailable", state["stop_reason"])
+        self.assertIn("not a code defect", state["stop_reason"])
+        self.assertEqual((wt / ".autose_out" / ".fake_implementer_calls").read_text(), "1")  # no retries
+        self.assertTrue((wt / ".autose_out" / "logs" / "3-implementation-implementer-1.transcript.jsonl").exists())
 
     def test_guard_violation_stops_the_run(self):
         state, _ = self.run_build("guard_violation")

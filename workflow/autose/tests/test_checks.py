@@ -227,6 +227,17 @@ class TestTranscript(unittest.TestCase):
         path.write_text("\n".join(json.dumps(x) for x in lines) + "\n")
         return path
 
+    def test_sandbox_failure_detected(self):
+        real = ("Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not "
+                "installed. Restart to retry. Running it outside the sandbox (dangerouslyDisableSandbox) is not "
+                "allowed either.")  # verbatim from review run 45006857285
+        self.assertIn("socat", claude_runner.environment_failure([cmd("python -m unittest discover tests",
+                                                                      ok=False, tail=real)]))
+        self.assertEqual(claude_runner.environment_failure([cmd("python -m unittest", ok=False,
+                                                                tail="FAILED (failures=1)")]), "")
+        self.assertEqual(claude_runner.environment_failure(RAN_SUITE), "")
+        self.assertEqual(claude_runner.environment_failure(None), "")
+
     def test_find_and_parse(self):
         with tempfile.TemporaryDirectory() as d, mock.patch.dict("os.environ", {"CLAUDE_CONFIG_DIR": d}):
             path = self.write_transcript(Path(d), "abc-123")

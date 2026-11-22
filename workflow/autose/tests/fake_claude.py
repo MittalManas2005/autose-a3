@@ -19,8 +19,20 @@ counter = OUT / f".fake_{role}_calls"
 calls = int(counter.read_text()) + 1 if counter.exists() else 1
 counter.write_text(str(calls))
 structured = None
+session = f"fake-{role}-{calls}"
 
-if role == "requirements":
+if scenario == "sandbox_broken" and role == "implementer":
+    # Like run 45006857285: every shell command fails because Claude Code's sandbox cannot start.
+    projects = Path(os.environ["CLAUDE_CONFIG_DIR"]) / "projects" / "fake-cwd"
+    projects.mkdir(parents=True, exist_ok=True)
+    (projects / f"{session}.jsonl").write_text("\n".join(json.dumps(x) for x in [
+        {"message": {"content": [{"type": "tool_use", "id": "t1", "name": "Bash",
+                                  "input": {"command": "python -m unittest discover tests"}}]}},
+        {"message": {"content": [{"type": "tool_result", "tool_use_id": "t1", "is_error": True, "content":
+                                  "Sandbox is required but failed to initialize: Sandbox dependencies not "
+                                  "available: socat not installed. Restart to retry."}]}},
+    ]) + "\n")
+elif role == "requirements":
     name = "spec_needs_input.md" if scenario == "needs_input" else "spec.md"
     (OUT / "spec.md").write_text((FIX / name).read_text())
 elif role == "design":
@@ -44,7 +56,7 @@ elif role == "tester":
 
 print(json.dumps({
     "type": "result", "subtype": "success", "is_error": False, "result": f"fake {role} done",
-    "session_id": "fake-session", "num_turns": 1, "total_cost_usd": 0,
+    "session_id": session, "num_turns": 1, "total_cost_usd": 0,
     "usage": {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
     "modelUsage": {"fake-model": {}}, "permission_denials": [], "structured_output": structured,
 }))
