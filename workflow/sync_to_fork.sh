@@ -10,6 +10,15 @@ A3=$(cd "$HERE/.." && pwd)
 git -C "$FORK" rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "not a git clone: $FORK" >&2; exit 1; }
 [ -f "$FORK/markdown/core.py" ] || { echo "not a Python-Markdown checkout: $FORK" >&2; exit 1; }
 
+# GitHub validates workflow expressions more strictly than a YAML parser: lint before copying.
+if command -v actionlint >/dev/null 2>&1; then
+  actionlint "$HERE/.github/workflows/autose.yml" "$HERE/.github/workflows/autose-round.yml" \
+    || { echo "actionlint failed: fix the workflow files before syncing" >&2; exit 1; }
+  echo "actionlint: workflow files OK"
+else
+  echo "warning: actionlint not installed (brew install actionlint); workflow files not linted" >&2
+fi
+
 mkdir -p "$HERE/autose/context" "$HERE/autose/skills"
 cp "$A3/ARCHITECTURE.md" "$HERE/autose/context/ARCHITECTURE.md"
 cp "$A3/a1_skill.md" "$HERE/autose/skills/requirements-spec-builder.md"
