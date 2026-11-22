@@ -71,5 +71,6 @@ flowchart TB
 ## Interactions that are deliberately absent
 - No agent receives a GitHub token with write access. All GitHub writes happen in deterministic steps (ADR-005, ADR-012).
 - The review job never downloads build artifacts (`spec.md`, `design.md`, `test_report.md`) and never reads the PR description (ADR-003, ADR-013).
+- The review job runs AutoSE's own code from the trusted base commit (`python -P`, sparse checkout of `autose/`), never from the branch under review, and review-only runs accept only PRs whose branch is in the fork (ADR-014).
 - No agent has web access, and no token in the fork can read `autose-a3`, where the hidden tests live (ADR-012).
 - Commands an agent runs (tests, `python -c` probes) get no Claude credentials: Claude Code removes them from their environment (`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`, ADR-012). Each agent's session transcript is kept in its job's artifact.
