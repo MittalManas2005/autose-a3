@@ -28,7 +28,7 @@ flowchart TB
     end
     REL["Job release (per round)<br/>deterministic, no LLM<br/>GitHub App token: contents + pull-requests write"]
     REV["Job review (per round)<br/>fresh runner · contents: read, pull-requests: write<br/>(GITHUB_TOKEN = github-actions bot)"]
-    REVA["Reviewer agent<br/>Sonnet · Read/Grep/Glob · Bash: unittest, flake8, python -c<br/>sees issue + diff + PR head only"]
+    REVA["Reviewer agent<br/>Haiku (ADR-015; Sonnet selectable) · Read/Grep/Glob · Bash: unittest, flake8, python -c<br/>sees issue + maintainer answers + diff + PR head only"]
     REPORT["Job report<br/>issues: write · status comment"]
   end
 
@@ -64,7 +64,7 @@ flowchart TB
 | Checks | deterministic | Python | spec parser, design validator (AST), diff guard, build + flake8, `unittest` runner (clean environment), AC-coverage, fail-on-base | pass/fail + reasons into the stage artifacts |
 | Release job | deterministic | bash + `gh` + GitHub App token | `contents: write`, `pull-requests: write` (App installation token, 1 h lifetime) | branch `autose/issue-N`, PR, `pr.md`, CI result |
 | Review job | deterministic shell + LLM | — | `contents: read`, `pull-requests: write` via `GITHUB_TOKEN` | posts the review |
-| Reviewer agent | LLM | Claude Sonnet, effort medium | Read, Grep, Glob; Bash limited to `python -m unittest`, `python -m flake8`, `python -c`; no edits, no git, no `gh` | `review.md`, `verdict.json`, session transcript |
+| Reviewer agent | LLM | Claude Haiku, effort medium (ADR-015; Sonnet via `reviewer_model=sonnet`) | Read, Grep, Glob; Bash limited to `python -m unittest`, `python -m flake8`, `python -c`; no edits, no git, no `gh` | `review.md`, `verdict.json`, session transcript |
 | Report job | deterministic | `gh` | `issues: write` | one status comment on the issue with links and the run ID |
 | Upstream CI | existing workflows in the fork | — | unchanged upstream configuration | check runs on the PR head commit |
 
