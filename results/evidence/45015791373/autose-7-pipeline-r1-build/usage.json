@@ -1,0 +1,92 @@
+[
+  {
+    "role": "requirements",
+    "stage": "1-requirements",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 29653,
+    "cache_read_input_tokens": 248814,
+    "output_tokens": 16599,
+    "cost_usd_list_price": 0.01671944,
+    "num_turns": 10,
+    "duration_s": 66.0,
+    "permission_denials": 0
+  },
+  {
+    "role": "design",
+    "stage": "2-design",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 62955,
+    "cache_read_input_tokens": 578817,
+    "output_tokens": 22160,
+    "cost_usd_list_price": 0.029461570000000003,
+    "num_turns": 26,
+    "duration_s": 97.3,
+    "permission_denials": 0
+  },
+  {
+    "role": "implementer",
+    "stage": "3-implementation",
+    "attempt": 1,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 37038,
+    "cache_read_input_tokens": 453261,
+    "output_tokens": 8731,
+    "cost_usd_list_price": 0.01630811,
+    "num_turns": 27,
+    "duration_s": 36.8,
+    "permission_denials": 0
+  },
+  {
+    "role": "implementer",
+    "stage": "3-implementation",
+    "attempt": 2,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 26765,
+    "cache_read_input_tokens": 259670,
+    "output_tokens": 3619,
+    "cost_usd_list_price": 0.009760799999999998,
+    "num_turns": 19,
+    "duration_s": 18.6,
+    "permission_denials": 1
+  },
+  {
+    "role": "tester",
+    "stage": "4-testing",
+    "attempt": 2,
+    "outcome": "success",
+    "model_requested": "haiku",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 27798,
+    "cache_read_input_tokens": 283603,
+    "output_tokens": 3894,
+    "cost_usd_list_price": 0.01034443,
+    "num_turns": 11,
+    "duration_s": 18.3,
+    "permission_denials": 1
+  }
+]

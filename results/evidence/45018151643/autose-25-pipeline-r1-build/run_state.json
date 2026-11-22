@@ -1,0 +1,82 @@
+{
+  "created": "2026-11-22T11:37:22Z",
+  "transitions": [
+    {
+      "at": "2026-11-22T11:38:41Z",
+      "from": "requirements",
+      "to": "design",
+      "reason": "spec check passed"
+    },
+    {
+      "at": "2026-11-22T11:39:31Z",
+      "from": "design",
+      "to": "implementation",
+      "reason": "design check passed"
+    },
+    {
+      "at": "2026-11-22T11:39:48Z",
+      "from": "implementation",
+      "to": "testing",
+      "reason": "build check passed"
+    },
+    {
+      "at": "2026-11-22T11:40:23Z",
+      "from": "testing",
+      "to": "release",
+      "reason": "all new and existing tests pass"
+    }
+  ],
+  "checks": [
+    {
+      "at": "2026-11-22T11:38:41Z",
+      "stage": 1,
+      "check": "spec testable",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T11:39:31Z",
+      "stage": 2,
+      "check": "design names files and functions",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T11:39:48Z",
+      "stage": 3,
+      "check": "code builds (guard + compile + flake8)",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "at": "2026-11-22T11:40:23Z",
+      "stage": 4,
+      "check": "new and existing tests pass",
+      "ok": true,
+      "reasons": []
+    }
+  ],
+  "status": "ready",
+  "issue": "25",
+  "round": 1,
+  "variant": "pipeline",
+  "base_sha": "3b69d28faa5287c08b881c747ea08a0298af07fc",
+  "start_sha": "3b69d28faa5287c08b881c747ea08a0298af07fc",
+  "start_stage": "requirements",
+  "base_tests": 1166,
+  "ac_ids": [
+    "AC-FR-001-1",
+    "AC-FR-001-2",
+    "AC-FR-001-3",
+    "AC-FR-001-4",
+    "AC-FR-002-1",
+    "AC-FR-002-2"
+  ],
+  "inferred_ac_ids": [
+    "AC-FR-001-3",
+    "AC-FR-001-4",
+    "AC-FR-002-1",
+    "AC-FR-002-2"
+  ],
+  "finished": true
+}

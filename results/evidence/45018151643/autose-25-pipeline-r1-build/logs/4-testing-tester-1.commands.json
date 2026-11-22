@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...........................................................................\n----------------------------------------------------------------------\nRan 75 tests in 0.425s\n\nOK"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...........................................................................\n----------------------------------------------------------------------\nRan 75 tests in 0.420s\n\nOK"
+  }
+]

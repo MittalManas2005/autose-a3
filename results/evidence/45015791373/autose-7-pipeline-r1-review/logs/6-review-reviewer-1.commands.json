@@ -1,0 +1,86 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1176 tests in 1.180s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.inline.test_links tests.test_syntax.inline.test_links_code_label",
+    "denied": false,
+    "ok": true,
+    "output_tail": "..................................................\n----------------------------------------------------------------------\nRan 50 tests in 0.012s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown/inlinepatterns.py markdown/treeprocessors.py tests/test_syntax/inline/test_links.py tests/test_syntax/inline/test_links_code_label.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`foo`]\\n\\n[`foo`]: https://example.com\\n'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: foo"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[*foo*]\\n\\n[*foo*]: https://example.com\\n\\n[*foo*][x]\\n\\n[x]: https://b.example\\n'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://example.com\"><em>foo</em></a></p>\n<p><a href=\"https://b.example\"><em>foo</em></a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[`foo`]\\n\\n[foo]: https://example.com\\n\\n[`Foo`]\\n\\n[`foo`]: https://c.example\\n'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following parts require approval: foo, Foo"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[![`x`](i.png)][`foo`]\\n\\n[`foo`]: https://example.com\\n\\n[a `b` c][`x` y]\\n\\n[a `b` c]: https://d.example\\n\\n[`x` y]: https://e.example\\n'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following parts require approval: x, foo, b"
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('[<http://a.example>]\\n\\n[<http://a.example>]: https://f.example\\n\\n[`a`]\\n\\n[`a`]: https://g.example \\\"T\\\"\\n\\n[text][`a`]\\n\\nAnd [link](https://h.example) and [`a`](https://i.example)\\n'))\"",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This Bash command contains multiple operations. The following part requires approval: a"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('['+b+'foo'+b+']\\n\\n[foo]: https://example.com\\n\\n['+b+'Foo'+b+']\\n\\n['+b+'foo'+b+']: https://c.example\\n'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://c.example\"><code>foo</code></a></p>\n<p><a href=\"https://c.example\"><code>Foo</code></a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('[!['+b+'x'+b+'](i.png)]['+b+'foo'+b+']\\n\\n['+b+'foo'+b+']: https://example.com\\n\\n[a '+b+'b'+b+' c]['+b+'x'+b+' y]\\n\\n[a '+b+'b'+b+' c]: https://d.example\\n\\n['+b+'x'+b+' y]: https://e.example\\n'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://example.com\"><img alt=\"x\" src=\"i.png\" /></a></p>\n<p><a href=\"https://e.example\">a <code>b</code> c</a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('[<http://a.example>]\\n\\n[<http://a.example>]: https://f.example\\n\\n['+b+'a'+b+']\\n\\n['+b+'a'+b+']: https://g.example \\\"T\\\"\\n\\n[text]['+b+'a'+b+']\\n\\nAnd [link](https://h.example) and ['+b+'a'+b+'](https://i.example)\\n'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p><a href=\"https://f.example\"><a href=\"http://a.example\">http://a.example</a></a></p>\n<p><a href=\"https://g.example\" title=\"T\"><code>a</code></a></p>\n<p><a href=\"https://g.example\" title=\"T\">text</a></p>\n<p>And <a href=\"https://h.example\">link</a> and <a href=\"https://i.example\"><code>a</code></a></p>"
+  },
+  {
+    "command": "python -c \"import markdown; b=chr(96); print(markdown.markdown('['+b+'a'+b+' ['+b+'b'+b+']]\\n\\n['+b+'a'+b+' '+b+'b'+b+']: https://z.example\\n\\n[x]['+b+'a'+b+']\\n\\n['+b+'a'+b+']: https://q.example\\n'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>[<code>a</code> [<code>b</code>]]</p>\n<p><a href=\"https://q.example\">x</a></p>"
+  },
+  {
+    "command": "git archive --format=tar --output=$TMPDIR/base.tar HEAD markdown",
+    "denied": true,
+    "ok": false,
+    "output_tail": "Permission to use Bash with command git archive --format=tar --output=$TMPDIR/base.tar HEAD markdown has been denied."
+  },
+  {
+    "command": "python -c \"import markdown; print(markdown.markdown('see [a](https://x.example) here\\n\\n[see [a](https://x.example)][foo]\\n\\n[foo]: https://y.example\\n'))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "<p>see <a href=\"https://x.example\">a</a> here</p>\n<p><a href=\"https://y.example\">see <a href=\"https://x.example\">a</a></a></p>"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "command": "git diff --cached",
+    "denied": true,
+    "ok": false,
+    "output_tail": "Permission to use Bash with command git diff --cached has been denied."
+  },
+  {
+    "command": "python -m compileall -q markdown",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.inline.test_links",
+    "denied": false,
+    "ok": true,
+    "output_tail": ".............................................\n----------------------------------------------------------------------\nRan 45 tests in 0.010s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1171 tests in 1.120s\n\nOK (skipped=52)"
+  }
+]

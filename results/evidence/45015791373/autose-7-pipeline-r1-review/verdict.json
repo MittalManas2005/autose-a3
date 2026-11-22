@@ -1,0 +1,43 @@
+{
+  "verdict": "approve",
+  "target_stage": "none",
+  "summary": "The change fixes the reported bug: reference links whose label contains a code span (shortcut, full, and empty-id forms) now resolve to their definition. The full suite passes, the changed link modules pass, and flake8 is clean on the changed files. The remaining findings are minor and do not block merge.",
+  "verified": [
+    "python -m unittest discover tests: 1176 tests, OK (skipped=52), run by me",
+    "python -m unittest tests.test_syntax.inline.test_links tests.test_syntax.inline.test_links_code_label: 50 tests OK, run by me",
+    "python -m flake8 on the four changed Python files: no output",
+    "Probe: [`foo`] with def [`foo`] links with <code>foo</code>; [text][`foo`] links; [`foo`][] links",
+    "Probe: [`foo`] with def [foo] does not link (correct, labels differ); [`Foo`] matches def [`foo`] (case-insensitive, consistent with plain refs)",
+    "Probe: [a `b` c][`x` y] with matching def links and keeps the inner code span; [![`x`](i.png)][`foo`] links and keeps the image",
+    "Probe: inline [`foo`](url) still works; undefined [`foo`] stays [<code>foo</code>]; image ref ![`foo`] output unchanged",
+    "resolveLabel terminates: a stash source only references earlier placeholders, and unknown placeholders are left unchanged",
+    "Compared with pre-existing behaviour: [see [a](x)][foo] already nests anchors on the base code, so nested output for autolink labels is the same pre-existing pattern",
+    "ARCHITECTURE.md K1-K5: no signature or priority changes, placeholder text is read from the stash and never altered, public names unchanged"
+  ],
+  "findings": [
+    {
+      "severity": "minor",
+      "file": "markdown/inlinepatterns.py",
+      "issue": "resolveLabel expands every inline placeholder in a reference label, not only code spans. Emphasis labels such as [*foo*] with def [*foo*] now link, which was not asked for. This matches CommonMark label matching, so it is probably acceptable but is wider than the issue.",
+      "evidence": "Probe: markdown.markdown('[*foo*]\\n\\n[*foo*]: https://example.com') now gives <a href=\"https://example.com\"><em>foo</em></a>. Base code did not link because the id was the placeholder text."
+    },
+    {
+      "severity": "minor",
+      "file": "markdown/inlinepatterns.py",
+      "issue": "An autolink inside a reference label now links to the definition and produces nested anchors. This is invalid HTML and CommonMark would not form a link here.",
+      "evidence": "Probe: [<http://a.example>] with def [<http://a.example>]: https://f.example gives <a href=\"https://f.example\"><a href=\"http://a.example\">http://a.example</a></a>. Base output was bracketed text plus a separate autolink. The same nesting already occurs on base for [see [a](x)][foo] with def foo."
+    },
+    {
+      "severity": "minor",
+      "file": "tests/test_syntax/inline/test_links_code_label.py",
+      "issue": "The new test module duplicates the cases already added to test_links.py, copies the project license docstring, and uses AC-FR-* identifiers that refer to no artifact in the repository. Test names such as test_ac_fr_001_2 (plain inline link) are unrelated to the issue.",
+      "evidence": "tests/test_syntax/inline/test_links_code_label.py:213-266 versus tests/test_syntax/inline/test_links.py:206-266 cover the same inputs. Module passes (50 tests OK with test_links)."
+    },
+    {
+      "severity": "minor",
+      "file": "tests/test_syntax/inline/test_links.py",
+      "issue": "test_image_ref_code_in_label_unchanged locks in the broken output ![<code>foo</code>] for image references instead of leaving the behaviour unasserted. A later fix would have to change this test.",
+      "evidence": "tests/test_syntax/inline/test_links.py test_image_ref_code_in_label_unchanged expects <p>![<code>foo</code>]</p>."
+    }
+  ]
+}

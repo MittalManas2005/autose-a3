@@ -1,0 +1,38 @@
+[
+  {
+    "command": "python -m unittest discover tests",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...............................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 1174 tests in 1.182s\n\nOK (skipped=52)"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.extensions.test_toc",
+    "denied": false,
+    "ok": true,
+    "output_tail": "...........................................................................\n----------------------------------------------------------------------\nRan 75 tests in 0.351s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 markdown/extensions/toc.py tests/test_syntax/extensions/test_toc.py",
+    "denied": false,
+    "ok": true,
+    "output_tail": "(Bash completed with no output)"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('## Setup {: data-toc-label }', extensions=['toc', 'attr_list'])))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<h2 id=\"setup\">Setup</h2>'"
+  },
+  {
+    "command": "python -c \"import markdown; print(repr(markdown.markdown('## Setup {: data-toc-label=\\\"\\\" }', extensions=['toc', 'attr_list'])))\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "'<h2 id=\"setup\">Setup</h2>'"
+  },
+  {
+    "command": "python -c \"import markdown; md=markdown.Markdown(extensions=['toc','attr_list']); md.convert('## Setup {: data-toc-label }\\n\\n## Two {: data-toc-label=\\\"X<b>y</b>\\\" }'); print(md.toc_tokens)\"",
+    "denied": false,
+    "ok": true,
+    "output_tail": "[{'level': 2, 'id': 'setup', 'name': 'Setup', 'html': 'Setup', 'data-toc-label': '', 'children': []}, {'level': 2, 'id': 'two', 'name': 'Xy', 'html': 'Two', 'data-toc-label': 'X<b>y</b>', 'children': []}]"
+  }
+]

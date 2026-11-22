@@ -1,0 +1,133 @@
+diff --git a/docs/changelog.md b/docs/changelog.md
+index cba971a..bae383d 100644
+--- a/docs/changelog.md
++++ b/docs/changelog.md
+@@ -39,6 +39,9 @@ See the [Contributing Guide](contributing.md) for details.
+   provided, rather than rendering them as `key="key"`, so the same source
+   renders consistently under both the `html` and `xhtml` output formats
+   (#1501).
++* Ignore a valueless `data-toc-label` attribute in the `toc` extension when
++  `attr_list` is enabled, so the Table of Contents entry uses the heading text
++  instead of raising `TypeError`.
+ 
+ ## [3.11.2] - 2026-10-19
+ 
+diff --git a/markdown/extensions/toc.py b/markdown/extensions/toc.py
+index ba65225..cac6e0c 100644
+--- a/markdown/extensions/toc.py
++++ b/markdown/extensions/toc.py
+@@ -405,11 +405,15 @@ class TocTreeprocessor(Treeprocessor):
+ 
+                 data_toc_label = ''
+                 if 'data-toc-label' in el.attrib:
+-                    data_toc_label = run_postprocessors(unescape(el.attrib['data-toc-label']), self.md)
+-                    # Overwrite name with sanitized value of `data-toc-label`.
+-                    name = escape_cdata(strip_tags(data_toc_label))
++                    raw_label = el.attrib['data-toc-label']
+                     # Remove the data-toc-label attribute as it is no longer needed
+                     del el.attrib['data-toc-label']
++                    # A valueless attribute is stored as `None` by `attr_list`. Ignore it, so the
++                    # name keeps the heading text.
++                    if raw_label is not None:
++                        data_toc_label = run_postprocessors(unescape(raw_label), self.md)
++                        # Overwrite name with sanitized value of `data-toc-label`.
++                        name = escape_cdata(strip_tags(data_toc_label))
+ 
+                 if int(el.tag[-1]) >= self.toc_top and int(el.tag[-1]) <= self.toc_bottom:
+                     toc_tokens.append({
+diff --git a/tests/test_syntax/extensions/test_toc.py b/tests/test_syntax/extensions/test_toc.py
+index 12a07d5..6c8281b 100644
+--- a/tests/test_syntax/extensions/test_toc.py
++++ b/tests/test_syntax/extensions/test_toc.py
+@@ -19,6 +19,7 @@ Copyright 2004 Manfred Stienstra (the original version)
+ License: BSD (see LICENSE.md for details).
+ """
+ 
++import markdown
+ from markdown.test_tools import TestCase
+ from markdown import Markdown
+ from markdown.extensions.toc import TocExtension, strip_tags, unique
+@@ -202,6 +203,83 @@ class TestTOC(TestCase):
+             extensions=[TocExtension(), 'attr_list']
+         )
+ 
++    def testValuelessCustomLabelAttribute(self):
++        self.assertMarkdownRenders(
++            '## Setup {: data-toc-label }',
++            '<h2 id="setup">Setup</h2>',
++            expected_attrs={
++                'toc': (
++                    '<div class="toc">\n<ul>\n'
++                    '<li><a href="#setup">Setup</a></li>\n'
++                    '</ul>\n</div>\n'
++                ),
++                'toc_tokens': [{
++                    'level': 2,
++                    'id': 'setup',
++                    'name': 'Setup',
++                    'html': 'Setup',
++                    'data-toc-label': '',
++                    'children': []
++                }]
++            },
++            extensions=[TocExtension(), 'attr_list']
++        )
++
++    def testCustomLabelAttributeWithValue(self):
++        self.assertMarkdownRenders(
++            "## Setup { data-toc-label='Custom' }",
++            '<h2 id="setup">Setup</h2>',
++            expected_attrs={
++                'toc_tokens': [{
++                    'level': 2,
++                    'id': 'setup',
++                    'name': 'Custom',
++                    'html': 'Setup',
++                    'data-toc-label': 'Custom',
++                    'children': []
++                }]
++            },
++            extensions=[TocExtension(), 'attr_list']
++        )
++
++    def test_ac_fr_001_1_valueless_label_no_error(self):
++        """`AC-FR-001-1`: a `data-toc-label` with no value raises no exception and gives HTML."""
++        output = markdown.markdown('## Setup {: data-toc-label }', extensions=['toc', 'attr_list'])
++        self.assertIsInstance(output, str)
++        self.assertIn('<h2 id="setup">', output)
++
++    def test_ac_fr_001_2_valueless_label_toc_name_is_heading_text(self):
++        """`AC-FR-001-2`: the `toc` entry for a `data-toc-label` with no value is named after the heading."""
++        md = Markdown(extensions=['toc', 'attr_list'])
++        md.convert('## Setup {: data-toc-label }')
++        self.assertEqual(len(md.toc_tokens), 1)
++        self.assertEqual(md.toc_tokens[0]['name'], 'Setup')
++
++    def test_ac_fr_001_3_valueless_label_header_markup(self):
++        """`AC-FR-001-3`: a `data-toc-label` with no value leaves the header markup unchanged."""
++        output = markdown.markdown('## Setup {: data-toc-label }', extensions=['toc', 'attr_list'])
++        self.assertIn('<h2 id="setup">Setup</h2>', output)
++
++    def test_ac_fr_001_4_valueless_label_toc_links_to_heading(self):
++        """`AC-FR-001-4`: the `toc` marker links to the heading ID when the label has no value."""
++        output = markdown.markdown(
++            '[TOC]\n\n## Setup {: data-toc-label }',
++            extensions=['toc', 'attr_list']
++        )
++        self.assertIn('href="#setup"', output)
++
++    def test_ac_fr_002_1_non_empty_label_toc_name_preserved(self):
++        """`AC-FR-002-1`: a non-empty `data-toc-label` is used as the TOC entry name."""
++        md = Markdown(extensions=['toc', 'attr_list'])
++        md.convert("## Setup { data-toc-label='Custom' }")
++        self.assertEqual(len(md.toc_tokens), 1)
++        self.assertEqual(md.toc_tokens[0]['name'], 'Custom')
++
++    def test_ac_fr_002_2_non_empty_label_header_id_preserved(self):
++        """`AC-FR-002-2`: a non-empty `data-toc-label` keeps the ID derived from the heading text."""
++        output = markdown.markdown("## Setup { data-toc-label='Custom' }", extensions=['toc', 'attr_list'])
++        self.assertIn('<h2 id="setup">Setup</h2>', output)
++
+     def testUniqueIds(self):
+         self.assertMarkdownRenders(
+             self.dedent(

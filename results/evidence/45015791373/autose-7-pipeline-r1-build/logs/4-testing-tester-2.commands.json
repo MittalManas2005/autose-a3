@@ -1,0 +1,20 @@
+[
+  {
+    "command": "python -m unittest tests.test_syntax.inline.test_links_code_label -v",
+    "denied": false,
+    "ok": true,
+    "output_tail": "R-001-5`: a full reference with a plain id still becomes a link. ... ok\ntest_ac_fr_002_1_inline_link_code_label (tests.test_syntax.inline.test_links_code_label.TestIssue7CodeInLinkLabel.test_ac_fr_002_1_inline_link_code_label)\n`AC-FR-002-1`: an inline link whose text is a code span still works. ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.003s\n\nOK"
+  },
+  {
+    "command": "python -m flake8 tests/test_syntax/inline/test_links_code_label.py",
+    "denied": false,
+    "ok": false,
+    "output_tail": "This command requires approval"
+  },
+  {
+    "command": "python -m unittest tests.test_syntax.inline.test_links_code_label",
+    "denied": false,
+    "ok": true,
+    "output_tail": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.003s\n\nOK"
+  }
+]
