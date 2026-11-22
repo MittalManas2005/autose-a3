@@ -17,7 +17,7 @@ Code checks every stage before it hands over. **AutoSE never merges:** a person 
 | **Models** | Claude Haiku (`claude-haiku-5-5`) for Requirements, Design, Implementer, Tester and the single-agent variant. **Reviewer:** Claude Sonnet (`claude-sonnet-5-5`) in the baseline and E1 runs; Claude Haiku by default since [ADR-015](architecture/decisions/ADR-015.md), with Sonnet still selectable. Effort `medium` everywhere. |
 | **Agent runtime** | Claude Code CLI 2.1.319, headless (`claude -p`), driven by a Python orchestrator; Claude Pro subscription via `CLAUDE_CODE_OAUTH_TOKEN` |
 | **Report** | [`report.pdf`](report.pdf) |
-| **Demo** | *(link to be added)* |
+| **Demo** | [Demo video (OneDrive folder)](https://iiithydresearch-my.sharepoint.com/:f:/g/personal/manas_mittal_research_iiit_ac_in/IgBBBr3TTEn4Q4LBgxDO9E7wAZs1QewfuO216DN1abJWD9Y?e=9FMSfE) |
 
 ## How to trigger a run (in the fork)
 | Action | Who | What happens |
