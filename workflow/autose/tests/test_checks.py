@@ -4,6 +4,7 @@ Run from autose-a3/workflow:  python -m unittest discover -s autose/tests -t .
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import tempfile
 import textwrap
@@ -11,7 +12,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from autose import checks, gate, review
+from autose import checks, claude_runner, gate, review
 
 SPEC_OK = textwrap.dedent("""\
     ---
@@ -153,6 +154,13 @@ class TestDiffGuard(RepoCase):
         self.assertFalse(self.guard().ok)
 
 
+def cmd(command, ok=True, denied=False, tail="Ran 1172 tests in 3.2s\n\nOK (skipped=13)"):
+    return {"command": command, "ok": ok, "denied": denied, "output_tail": tail}
+
+
+RAN_SUITE = [cmd("python -m unittest discover tests")]
+
+
 class TestVerdictValidation(unittest.TestCase):
     def v(self, **kw):
         base = {"verdict": "approve", "target_stage": "none", "summary": "s", "verified": ["ran tests"],
@@ -161,21 +169,74 @@ class TestVerdictValidation(unittest.TestCase):
         return base
 
     def test_approve_ok(self):
-        self.assertEqual(review.validate(self.v()), [])
+        self.assertEqual(review.validate(self.v(), RAN_SUITE), [])
 
     def test_approve_without_verification_rejected(self):
-        self.assertTrue(review.validate(self.v(verified=[])))
+        self.assertTrue(review.validate(self.v(verified=[]), RAN_SUITE))
 
     def test_request_changes_needs_serious_finding_and_stage(self):
-        self.assertTrue(review.validate(self.v(verdict="request_changes")))
+        self.assertTrue(review.validate(self.v(verdict="request_changes"), RAN_SUITE))
         good = self.v(verdict="request_changes", target_stage="implementation",
                       findings=[{"severity": "major", "file": "a.py", "line": 1, "issue": "x", "evidence": "y"}])
-        self.assertEqual(review.validate(good), [])
+        self.assertEqual(review.validate(good, RAN_SUITE), [])
 
     def test_request_changes_finding_without_evidence_rejected(self):
         bad = self.v(verdict="request_changes", target_stage="design",
                      findings=[{"severity": "blocker", "file": "a.py", "line": None, "issue": "x", "evidence": " "}])
-        self.assertTrue(review.validate(bad))
+        self.assertTrue(review.validate(bad, RAN_SUITE))
+
+    # Smoke-test run 45003925819: the reviewer's only shell command was denied and it approved by reading.
+    def test_approve_without_running_tests_rejected(self):
+        self.assertTrue(review.validate(self.v(), None))   # no transcript at all
+        self.assertTrue(review.validate(self.v(), []))     # transcript, but no commands
+        self.assertTrue(review.validate(self.v(), [cmd("python -m unittest discover tests | tail -4",
+                                                       ok=False, denied=True, tail="Permission denied")]))
+        self.assertTrue(review.validate(self.v(), [cmd('python -c "import markdown"')]))
+
+    def test_approve_with_failing_suite_rejected(self):
+        failing = [cmd("python -m unittest discover tests", ok=False, tail="FAILED (failures=1)")]
+        self.assertTrue(review.validate(self.v(), failing))
+
+    def test_request_changes_does_not_need_a_test_run(self):
+        good = self.v(verdict="request_changes", target_stage="implementation",
+                      findings=[{"severity": "major", "file": "a.py", "line": 1, "issue": "x", "evidence": "y"}])
+        self.assertEqual(review.validate(good, None), [])
+
+
+class TestTranscript(unittest.TestCase):
+    """Executed commands come from Claude Code's own session transcript (format checked with 2.1.319)."""
+
+    def write_transcript(self, root: Path, session: str) -> Path:
+        lines = [
+            {"message": {"content": [{"type": "tool_use", "id": "t1", "name": "Bash",
+                                      "input": {"command": "python -m unittest discover tests"}}]}},
+            {"message": {"content": [{"type": "tool_use", "id": "t1", "name": "Bash",   # recorded twice
+                                      "input": {"command": "python -m unittest discover tests"}}]}},
+            {"message": {"content": [{"type": "tool_result", "tool_use_id": "t1", "is_error": False,
+                                      "content": "Ran 1172 tests\n\nOK"}]}},
+            {"message": {"content": [{"type": "tool_use", "id": "t2", "name": "Bash",
+                                      "input": {"command": "env"}}]}},
+            {"message": {"content": [{"type": "tool_result", "tool_use_id": "t2", "is_error": True,
+                                      "content": "Permission to use Bash has been denied."}]}},
+            {"message": {"content": [{"type": "tool_use", "id": "t3", "name": "Read",
+                                      "input": {"file_path": "x"}}]}},
+            {"message": {"content": "plain text message"}},
+        ]
+        path = root / "projects" / "-home-runner-work-markdown" / f"{session}.jsonl"
+        path.parent.mkdir(parents=True)
+        path.write_text("\n".join(json.dumps(x) for x in lines) + "\n")
+        return path
+
+    def test_find_and_parse(self):
+        with tempfile.TemporaryDirectory() as d, mock.patch.dict("os.environ", {"CLAUDE_CONFIG_DIR": d}):
+            path = self.write_transcript(Path(d), "abc-123")
+            self.assertEqual(claude_runner.find_transcript("abc-123"), path)
+            self.assertIsNone(claude_runner.find_transcript("other"))
+            self.assertIsNone(claude_runner.find_transcript(None))
+            cmds = claude_runner.executed_commands(path)
+        self.assertEqual([c["command"] for c in cmds], ["python -m unittest discover tests", "env"])
+        self.assertEqual([(c["ok"], c["denied"]) for c in cmds], [(True, False), (False, True)])
+        self.assertTrue(review.ran_test_suite(cmds))
 
 
 class TestGate(unittest.TestCase):
