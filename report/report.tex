@@ -1,7 +1,7 @@
 \documentclass[10pt,a4paper]{article}
 \usepackage[a4paper,margin=1.7cm]{geometry}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern,microtype,booktabs,tabularx,enumitem,xcolor,array}
+\usepackage{lmodern,microtype,booktabs,tabularx,enumitem,xcolor,array,amssymb}
 \usepackage[hidelinks]{hyperref}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
@@ -30,8 +30,8 @@ AutoSE runs in GitHub Actions on a fork of Python-Markdown. A maintainer adds th
 resume after a question, or review only). A Python \emph{orchestrator} then drives four short-lived Claude Code sessions
 (\texttt{claude -p}) through stages 1--4, deterministic code releases the change (stage 5), and an independent reviewer
 in a separate job judges it (stage 6). Every hand-over is a file artifact checked by code; transitions are decided by a
-state machine, never by an agent (\adr{002}, \adr{007}). AutoSE never merges. Figure~\ref{fig:comp} is the component view;
-Table~\ref{tab:stages} the stage map.
+state machine, never by an agent (\adr{002}, \adr{007}). AutoSE never merges. Figure~\ref{fig:comp} is the component view,
+Table~\ref{tab:stages} the stage map and Figure~\ref{fig:seq} the sequence of a real run.
 
 \begin{figure}[h]
 \centering\footnotesize
@@ -86,13 +86,34 @@ Stage & Handled by & Artifact & Check (all decided by code) & On failure\\
 \label{tab:stages}
 \end{table}
 
-\textbf{Sequence of a real run} (issue \#6, run \run{45010360150}, PR \pr{9}; full diagram in
-\texttt{architecture/views/sequence\_view.md}). 10:01:23 \texttt{/autose} comment $\rightarrow$ gate (admin, mode full)
-$\rightarrow$ Requirements: 8 ACs, check~1 PASS (10:03) $\rightarrow$ Design: check~2 PASS (10:04) $\rightarrow$ Implementer:
-check~3 PASS (10:05) $\rightarrow$ Tester: check~4 \emph{fails} on a misspelled docstring word, tester sent back, PASS at
-10:06:33 $\rightarrow$ release: App updates PR \#9, 13 CI checks green (10:09:19) $\rightarrow$ reviewer runs the suite and
-probes, approval accepted on transcript evidence, posted 10:09:59 $\rightarrow$ status comment 10:10:17. Nine minutes,
-61k output tokens.
+\begin{figure}[!ht]
+\centering\scriptsize
+\begin{tikzpicture}[x=1.62cm,y=-0.36cm,
+  msg/.style={-{Latex[length=1.6mm]},thick}, back/.style={msg,dashed},
+  lbl/.style={font=\scriptsize,inner sep=1pt}]
+\foreach \x/\n in {0/Maintainer,1/gate,2/orchestrator,3/Req.,4/Design,5/Impl.,6/Tester,7/release+CI,8/Reviewer,9/GitHub}
+  {\node[font=\scriptsize\bfseries] at (\x,0) {\n}; \draw[gray!50] (\x,0.6) -- (\x,16.6);}
+\draw[msg] (0,1.6) -- node[lbl,above]{\texttt{/autose} 10:01:23} (1,1.6);
+\draw[msg] (1,2.6) -- node[lbl,above]{admin, mode=full} (2,2.6);
+\draw[msg] (2,3.6) -- (3,3.6);
+\draw[msg] (3,4.6) -- node[lbl,above]{spec.md, 8 ACs: check 1 $\checkmark$ 10:03} (2,4.6);
+\draw[msg] (2,5.6) -- (4,5.6);
+\draw[msg] (4,6.6) -- node[lbl,above]{design.md: check 2 $\checkmark$ 10:04} (2,6.6);
+\draw[msg] (2,7.6) -- (5,7.6);
+\draw[msg] (5,8.6) -- node[lbl,above]{diff: check 3 $\checkmark$ 10:05} (2,8.6);
+\draw[msg] (2,9.6) -- (6,9.6);
+\draw[back] (6,10.6) -- node[lbl,above]{check 4 $\times$ (spelling) 10:06:03} (2,10.6);
+\draw[msg] (2,11.6) -- node[lbl,above]{test\_feedback.md} (6,11.6);
+\draw[msg] (6,12.6) -- node[lbl,above]{check 4 $\checkmark$ 10:06:33} (2,12.6);
+\draw[msg] (2,13.6) -- node[lbl,above]{PR \#9; 13 CI checks $\checkmark$ 10:09:19} (7,13.6);
+\draw[msg] (7,14.6) -- node[lbl,above]{PR head} (8,14.6);
+\draw[msg] (8,15.6) -- node[lbl,above]{approved 10:09:59} (9,15.6);
+\end{tikzpicture}
+\caption{Sequence view of a real run: issue \#6, run \run{45010360150}, PR \pr{9}, 9 minutes, 61k output tokens. It
+includes one real backward edge (stage 4 rejected a docstring word missing from the spell-check dictionary and sent the
+tester back). Full diagram with every step: \texttt{architecture/views/sequence\_view.md}.}
+\label{fig:seq}
+\end{figure}
 
 \section{Design decisions}
 Sixteen ADRs in Nygard format (with alternatives and an evaluation section) are in \texttt{architecture/decisions/}.
@@ -218,7 +239,9 @@ Both models caught 4/4 seeded defects with no false verdicts; Haiku probed more 
 in our own reference fix for issue 5 (labels containing \texttt{<} or \texttt{\&} do not resolve; verified) and costs about
 6.5$\times$ less, despite 2.5$\times$ more tokens. The rule was met. \textbf{Decision: \adr{006} superseded by \adr{015}}
 (Haiku default reviewer, Sonnet selectable); both configurations are reported here as an ablation. The cost: no model
-diversity between writer and reviewer, which E2 (n=5) cannot rule out as a source of shared blind spots.
+diversity between writer and reviewer, which E2 (n=5) cannot rule out as a source of shared blind spots. A post-hoc
+\emph{dual-reviewer panel} computed from the same verdicts (request changes if either model does) equals Haiku alone
+(same catches, same miss on PR \#12) at the combined cost, so running both reviewers is not justified on this evidence.
 
 \section{Results}
 \begin{table}[h]
@@ -247,6 +270,10 @@ clarified form was unsupported; the cause was an input gap (the answer was in a 
 \adr{016}. One review was a false ``request changes'' caused by the broken sandbox (run \run{45006857285}), now reported as
 an environment error instead.
 
+\textbf{Backward transitions exercised.} Tester sent back by check~4 (run \run{45010360150}); review $\rightarrow$
+implementation, round~2 (run \run{45011722169}); stage~1 stop-and-resume (\#7). The escalations testing$\rightarrow$design
+and review$\rightarrow$design are implemented and unit-tested but were never triggered by a real run.
+
 \textbf{Defects the runs found in AutoSE itself} (each fixed, tested and recorded): reviewer approving without executing
 anything; Claude token visible to agent commands; sandbox missing on Linux; reviewer code loaded from the PR branch;
 spec-format mismatch between the A1 skill's examples and the checker; spelling gap between stage 4 and CI; read-only
@@ -263,7 +290,12 @@ body, which kept the reviewer independent but also kept it ignorant of the maint
 a wrong approval on a real PR. Independence should be defined by \emph{who wrote} an input (humans vs.\ agents), not by
 \emph{where} it lives. Second, I would mirror the project's full CI (including spell check) in the stage checks from the
 start: attempt 1 lost three correct PRs to spelling. Finally, E1 suggests the value is in the independent reviewer and the
-executed checks rather than in the number of producing agents.
+executed checks rather than in the number of producing agents: cost is driven by re-reading cached context, not by
+role count. \textbf{Alternative splits not yet tested}: a
+\emph{test-first} order (Tester writes failing AC tests before any code; Implementer may not edit tests), a \emph{spec
+critic} that attacks the ACs for missing examples (the \#7 failure mode), and a merged Planner (Requirements+Design).
+With results at ceiling on five issues none could show a measurable gain; they need a harder issue set and harder
+seeded defects (e.g.\ spec omissions) first.
 
 \section{Limitations and threats to validity}
 \begin{enumerate}
@@ -277,8 +309,9 @@ by us (with AI help). Haiku found a bug in one reference fix that the hidden tes
 that choice (reported both ways).
 \item \textbf{Contamination and setting.} The issues reproduce real upstream bugs (e.g.\ the fix for issue 1 is upstream
 commit \texttt{dc26ab5}), which the models may have seen; one repository, one plan, model versions of November 2026.
-\item \textbf{Usage, not money.} Costs are list-price equivalents of a Pro subscription's usage; no provider spend limit
-exists for a subscription, so the plan's own limits were the hard cap.
+\item \textbf{Usage, not money; hard limits.} A Pro subscription has no provider-side spend setting, so the hard limits
+are AutoSE's own, set before the first run: per-role turn caps (20--80), per-call wall-clock limits, retry caps, $\le$2
+review send-backs and job timeouts (\adr{012}); the plan's usage quota is the outer cap. Costs are list-price equivalents.
 \end{enumerate}
 
 \clearpage

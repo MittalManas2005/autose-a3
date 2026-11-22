@@ -34,7 +34,7 @@ FIELDS = ["run_id", "experiment", "attempt", "issue", "variant", "reviewer_model
           "rounds", "stopped_at_stage", "stage1", "stage2", "stage3", "stage4", "stage5_ci", "stage6_review", "retries",
           "failed_checks", "agent_calls", "pr", "review_findings", "reviewer_commands_ok", "hidden_passed", "hidden_total",
           "output_tokens", "input_tokens", "cache_read_tokens", "cache_creation_tokens", "cost_usd_list_price",
-          "permission_denials", "duration_min", "run_url", "pr_url", "notes"]
+          "permission_denials", "duration_min", "run_url", "pr_url", "review_url", "notes"]
 
 
 def gh(*args: str) -> str:
@@ -59,6 +59,14 @@ def mirror(run_id: str, cache: Path) -> None:
                 target = dest / f.relative_to(art)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(f, target)
+
+
+def review_url(pr: str, t0: str, t1: str) -> str:
+    """The review this run posted: the github-actions review on the PR submitted during the run."""
+    reviews = json.loads(gh("api", f"repos/{REPO}/pulls/{pr}/reviews", "--paginate"))
+    hits = [r for r in reviews if (r.get("user") or {}).get("login") == "github-actions[bot]"
+            and t0 <= (r.get("submitted_at") or "") <= t1]
+    return hits[-1]["html_url"] if hits else ""
 
 
 def load(path: Path):
@@ -107,6 +115,7 @@ def main() -> int:
     for idx in csv.DictReader((RESULTS / "runs_index.csv").open()):
         rid = idx["run_id"]
         info = json.loads(gh("run", "view", rid, "--repo", REPO, "--json", "createdAt,updatedAt,url,status"))
+        t0, t1 = info["createdAt"], info["updatedAt"]
         if info["status"] != "completed":  # never cache a running run's partial artifacts
             print(f"{rid} still {info['status']}: skipped")
             continue
@@ -183,7 +192,8 @@ def main() -> int:
             "cost_usd_list_price": round(sum(u.get("cost_usd_list_price", 0) or 0 for u in usage), 4),
             "permission_denials": sum(u.get("permission_denials", 0) for u in usage),
             "duration_min": round(dur, 1), "run_url": info["url"],
-            "pr_url": f"https://github.com/{REPO}/pull/{pr}" if pr else "", "notes": idx["notes"],
+            "pr_url": f"https://github.com/{REPO}/pull/{pr}" if pr else "",
+            "review_url": review_url(pr, t0, t1) if pr and revs else "", "notes": idx["notes"],
         })
         print(f"{rid} {idx['experiment']:<8} #{idx['issue']} {outcome:<18} hidden {hp}/{ht}")
     with (RESULTS / "results.csv").open("w", newline="") as fh:
@@ -220,11 +230,13 @@ def write_runs_md(rows: list[dict]) -> None:
         if full:
             out += [f"Stage pass rates over these runs (passed / reached): {stage_rates(full)}", ""]
         out += ["| run | attempt | issue | variant / reviewer | outcome | stages 1-4 | CI | review | hidden tests "
-                "| output tokens | min | PR | notes |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+                "| output tokens | min | PR · review | notes |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for r in g:
             stages = " ".join(r[f"stage{i}"] or "-" for i in (1, 2, 3, 4))
             hid = f"{r['hidden_passed']}/{r['hidden_total']}" if r["hidden_total"] else "-"
             pr = f"[#{r['pr']}]({r['pr_url']})" if r["pr"] else "-"
+            if r["review_url"]:
+                pr += f" · [review]({r['review_url']})"
             out.append(f"| [{r['run_id']}]({r['run_url']}) | {r['attempt']} | #{r['issue']} | {r['variant']} / "
                        f"{r['reviewer_model']} | {r['outcome']} | {stages} | {r['stage5_ci'] or '-'} | "
                        f"{r['stage6_review'] or '-'} | {hid} | {r['output_tokens']} | {r['duration_min']} | {pr} | "
