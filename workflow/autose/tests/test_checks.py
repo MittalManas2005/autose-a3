@@ -243,6 +243,8 @@ class TestGate(unittest.TestCase):
     def setUp(self):
         self.write = mock.patch.object(gate, "has_write", return_value=True).start()
         self.status = mock.patch.object(gate, "last_status", return_value={}).start()
+        self.same_repo_patcher = mock.patch.object(gate, "same_repo_pr", return_value=True)
+        self.same_repo = self.same_repo_patcher.start()
         self.addCleanup(mock.patch.stopall)
 
     def test_label_autose_starts_full_run(self):
@@ -269,6 +271,23 @@ class TestGate(unittest.TestCase):
             "body": "/autose", "user": {"login": "m", "type": "User"}, "author_association": "OWNER"}}
         d = gate.decide("issue_comment", ev, "o/r", "sha")
         self.assertEqual((d["mode"], d["pr"]), ("review-only", "9"))
+
+    def test_review_of_pr_from_another_fork_refused(self):
+        self.same_repo.return_value = False
+        ev = {"issue": {"number": 9, "pull_request": {}}, "comment": {
+            "body": "/autose", "user": {"login": "m", "type": "User"}, "author_association": "OWNER"}}
+        self.assertEqual(gate.decide("issue_comment", ev, "o/r", "sha")["run"], "false")
+        dispatch = {"inputs": {"number": "9", "mode": "review-only"}, "sender": {"login": "m"}}
+        self.assertEqual(gate.decide("workflow_dispatch", dispatch, "o/r", "sha")["run"], "false")
+
+    def test_same_repo_pr_reads_head_repository(self):
+        self.same_repo_patcher.stop()
+        with mock.patch.object(gate, "gh_json", return_value={"head": {"repo": {"full_name": "o/r"}}}):
+            self.assertTrue(gate.same_repo_pr("o/r", "9"))
+        with mock.patch.object(gate, "gh_json", return_value={"head": {"repo": {"full_name": "evil/r"}}}):
+            self.assertFalse(gate.same_repo_pr("o/r", "9"))
+        with mock.patch.object(gate, "gh_json", return_value=None):
+            self.assertFalse(gate.same_repo_pr("o/r", "9"))
 
     def test_comment_after_needs_input_resumes(self):
         self.status.return_value = {"state": "needs_input", "run_id": "123", "variant": "pipeline"}
